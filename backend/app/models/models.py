@@ -231,6 +231,43 @@ class Workspace(Base, TimestampedMixin, SoftDeleteMixin):
     version: Mapped[int] = mapped_column(Integer, default=1)
 
     owner: Mapped["User"] = relationship("User", foreign_keys=[owner_id])
+    runs: Mapped[list["Run"]] = relationship(back_populates="workspace")
+
+
+class Run(Base, TimestampedMixin):
+    """Agent run (execution) in a workspace."""
+
+    __tablename__ = "runs"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    workspace_id: Mapped[str] = mapped_column(String(36), ForeignKey("workspaces.id"), nullable=False)
+    agent_id: Mapped[str] = mapped_column(String(36), ForeignKey("agents.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="running")  # running, completed, failed
+    input_text: Mapped[str] = mapped_column(Text, nullable=False)
+    output_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    tokens_used: Mapped[int] = mapped_column(Integer, default=0)
+
+    workspace: Mapped["Workspace"] = relationship(back_populates="runs")
+    agent: Mapped["Agent"] = relationship("Agent", foreign_keys=[agent_id])
+    messages: Mapped[list["Message"]] = relationship(back_populates="run")
+
+
+class Message(Base, TimestampedMixin):
+    """Chat message in a run."""
+
+    __tablename__ = "messages"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    run_id: Mapped[str] = mapped_column(String(36), ForeignKey("runs.id"), nullable=False)
+    role: Mapped[str] = mapped_column(String(50), nullable=False)  # user, assistant, system
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+
+    run: Mapped["Run"] = relationship(back_populates="messages")
 
 
 from sqlalchemy import Column

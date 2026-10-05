@@ -1,7 +1,7 @@
 """SQLAlchemy data models."""
 
 from app.models.base import Base, SoftDeleteMixin, TimestampedMixin
-from app.models.models import Agent, File, KnowledgeBase, Model, Tag, User, Workspace
+from app.models.models import Agent, File, KnowledgeBase, Model, Tag, User, Workspace, Run, Message
 
 __all__ = [
     "Base",
@@ -14,4 +14,6 @@ __all__ = [
     "Tag",
     "File",
     "Workspace",
+    "Run",
+    "Message",
 ]
