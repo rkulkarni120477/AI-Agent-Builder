@@ -2,52 +2,46 @@
 
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, useMemo } from 'react'
 import { fetchAgents } from '@/lib/api'
 
-const AGENT_TYPES = [
-  'Standard alignment',
-  'Content tagging',
-  'Skill extraction',
-  'Skill gap analysis',
-  'Content creation',
-  'Curriculum creation',
-  'Micro-course creation',
-  'Custom',
-]
-
-const STATUSES = ['active', 'draft', 'paused']
-
 export default function AgentsPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedType, setSelectedType] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('All')
 
   const { data: agents = [], isLoading, error } = useQuery({
-    queryKey: ['agents', searchQuery, selectedStatus, selectedType],
-    queryFn: () => fetchAgents(searchQuery, selectedStatus || undefined, selectedType || undefined),
+    queryKey: ['agents', searchQuery, selectedStatus],
+    queryFn: () => fetchAgents(searchQuery, selectedStatus !== 'All' ? selectedStatus.toLowerCase() : undefined),
   })
 
   const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = { All: agents.length }
-    STATUSES.forEach((status) => {
-      counts[status] = agents.filter((a) => a.status === status).length
-    })
-    return counts
+    return {
+      All: agents.length,
+      Active: agents.filter((a) => a.status === 'active').length,
+      Draft: agents.filter((a) => a.status === 'draft').length,
+      Paused: agents.filter((a) => a.status === 'paused').length,
+    }
   }, [agents])
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
 
   return (
     <div className="flex flex-col h-screen bg-bg">
       {/* Header */}
       <div className="border-b border-border bg-surface px-8 py-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-600 text-text">Agents</h1>
             <p className="text-text-3 mt-1">Build and manage your AI agents</p>
           </div>
           <Link
             href="/agents/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-button bg-accent text-white font-500 hover:opacity-90"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-white font-500 hover:opacity-90 transition-opacity"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="12" y1="5" x2="12" y2="19" />
@@ -56,166 +50,161 @@ export default function AgentsPage() {
             New agent
           </Link>
         </div>
-      </div>
 
-      {/* Main content */}
-      <div className="flex flex-1 min-h-0">
-        {/* Sidebar filters */}
-        <aside className="w-56 flex-shrink-0 border-r border-border bg-sidebar p-6 overflow-y-auto">
-          {/* Search */}
-          <div className="mb-6">
-            <label className="block text-sm font-500 text-text mb-2">Search</label>
+        {/* Search and Filters */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 relative">
+            <svg
+              className="absolute left-3 top-3 w-5 h-5 text-text-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
-              placeholder="Name, type, handle..."
+              placeholder="Search agents"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 rounded-input border border-border bg-surface text-text placeholder-text-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-white text-text placeholder-text-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
 
-          {/* Status filter */}
-          <div className="mb-8">
-            <h3 className="text-sm font-600 text-text mb-3">Status</h3>
-            <div className="space-y-2">
+          {/* Status Filter Buttons */}
+          <div className="flex items-center gap-2">
+            {['All', 'Active', 'Draft', 'Paused'].map((status) => (
               <button
-                onClick={() => setSelectedStatus('')}
-                className={`w-full text-left px-3 py-2 rounded-button text-sm font-500 ${
-                  selectedStatus === ''
-                    ? 'bg-surface border border-border text-text'
-                    : 'text-text-3 hover:bg-surface'
+                key={status}
+                onClick={() => setSelectedStatus(status)}
+                className={`px-4 py-2 rounded-full font-500 text-sm transition-colors ${
+                  selectedStatus === status
+                    ? 'bg-accent text-white'
+                    : 'bg-surface border border-border text-text hover:bg-panel'
                 }`}
               >
-                <span>All</span>
-                <span className="ml-2 text-text-3">({statusCounts['All']})</span>
+                {status}
               </button>
-              {STATUSES.map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setSelectedStatus(status)}
-                  className={`w-full text-left px-3 py-2 rounded-button text-sm font-500 capitalize ${
-                    selectedStatus === status
-                      ? 'bg-surface border border-border text-text'
-                      : 'text-text-3 hover:bg-surface'
-                  }`}
-                >
-                  <span className="capitalize">{status}</span>
-                  <span className="ml-2 text-text-3">({statusCounts[status]})</span>
-                </button>
-              ))}
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="w-8 h-8 rounded-full border-2 border-border border-t-accent animate-spin mx-auto mb-2" />
+              <p className="text-text-3">Loading agents...</p>
             </div>
           </div>
-
-          {/* Type filter */}
-          <div>
-            <h3 className="text-sm font-600 text-text mb-3">Type</h3>
-            <div className="space-y-2">
+        ) : error ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <p className="text-error mb-2">Failed to load agents</p>
               <button
-                onClick={() => setSelectedType('')}
-                className={`w-full text-left px-3 py-2 rounded-button text-sm font-500 ${
-                  selectedType === ''
-                    ? 'bg-surface border border-border text-text'
-                    : 'text-text-3 hover:bg-surface'
-                }`}
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 rounded-lg border border-error text-error hover:bg-error hover:text-white transition-colors"
               >
-                All types
+                Retry
               </button>
-              {AGENT_TYPES.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedType(type)}
-                  className={`w-full text-left px-3 py-2 rounded-button text-sm font-500 ${
-                    selectedType === type
-                      ? 'bg-surface border border-border text-text'
-                      : 'text-text-3 hover:bg-surface'
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
             </div>
           </div>
-        </aside>
+        ) : agents.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-panel mx-auto mb-4 flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 6v6m0 4v.01" />
+                </svg>
+              </div>
+              <p className="text-text mb-2">No agents yet</p>
+              <Link href="/agents/new" className="text-accent hover:underline text-sm">
+                Create your first agent
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="px-8 py-6">
+            {/* Table */}
+            <div className="border border-border rounded-lg overflow-hidden">
+              {/* Table Header */}
+              <div className="grid grid-cols-[2fr_1fr_1.5fr_0.8fr_1fr_0.8fr] gap-4 px-6 py-4 bg-sidebar border-b border-border font-600 text-xs text-text-3 uppercase tracking-wide">
+                <div>Agent</div>
+                <div>Model</div>
+                <div>Knowledge</div>
+                <div>Status</div>
+                <div>Updated</div>
+                <div className="text-right">Action</div>
+              </div>
 
-        {/* Agents list */}
-        <main className="flex-1 min-w-0 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="w-8 h-8 rounded-full border-2 border-border border-t-accent animate-spin mx-auto mb-2" />
-                <p className="text-text-3">Loading agents...</p>
-              </div>
-            </div>
-          ) : error ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <p className="text-error mb-2">Failed to load agents</p>
-                <p className="text-text-3 text-sm">{error.message}</p>
-              </div>
-            </div>
-          ) : agents.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <p className="text-text-3">No agents found</p>
-                {searchQuery || selectedType || selectedStatus ? (
-                  <button
-                    onClick={() => {
-                      setSearchQuery('')
-                      setSelectedType('')
-                      setSelectedStatus('')
-                    }}
-                    className="text-accent hover:underline text-sm mt-2"
+              {/* Table Rows */}
+              <div className="divide-y divide-border">
+                {agents.map((agent) => (
+                  <div
+                    key={agent.id}
+                    className="grid grid-cols-[2fr_1fr_1.5fr_0.8fr_1fr_0.8fr] gap-4 px-6 py-4 bg-surface hover:bg-panel transition-colors items-center"
                   >
-                    Clear filters
-                  </button>
-                ) : (
-                  <Link href="/agents/new" className="text-accent hover:underline text-sm mt-2 inline-block">
-                    Create your first agent
-                  </Link>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {agents.map((agent) => (
-                <Link
-                  key={agent.id}
-                  href={`/agents/${agent.id}`}
-                  className="block px-8 py-4 hover:bg-surface transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0 flex-1">
-                      <h2 className="text-base font-600 text-text truncate">{agent.name}</h2>
-                      <p className="text-text-3 text-sm mt-1">{agent.description}</p>
-                      <div className="flex items-center gap-4 mt-3">
-                        <span className="inline-block px-2.5 py-1 rounded-badge bg-panel text-text-2 text-xs font-500">
-                          {agent.type}
-                        </span>
-                        <span
-                          className={`inline-block px-2.5 py-1 rounded-badge text-xs font-500 ${
-                            agent.status === 'active'
-                              ? 'bg-success-light text-success'
-                              : agent.status === 'draft'
-                                ? 'bg-warning-light text-warning'
-                                : 'bg-secondary-light text-secondary'
-                          }`}
-                        >
-                          {agent.status}
-                        </span>
+                    {/* Agent */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-accent bg-opacity-10 flex items-center justify-center flex-shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent">
+                          <circle cx="12" cy="12" r="3" />
+                          <path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-600 text-text truncate">{agent.name}</h3>
+                        <p className="text-text-3 text-xs uppercase tracking-wide mt-1">{agent.type}</p>
+                        <p className="text-text-3 text-sm mt-1 line-clamp-1">{agent.description}</p>
                       </div>
                     </div>
-                    <div className="ml-4 flex-shrink-0 text-right">
-                      <p className="text-text-3 text-xs">v{agent.version}</p>
-                      <p className="text-text-3 text-xs">
-                        {new Date(agent.updated_at).toLocaleDateString()}
-                      </p>
+
+                    {/* Model */}
+                    <div className="text-sm text-text">{agent.model?.display_name}</div>
+
+                    {/* Knowledge */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {agent.knowledge_bases && agent.knowledge_bases.length > 0 ? (
+                        agent.knowledge_bases.slice(0, 2).map((kb, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2.5 py-1 rounded-full bg-panel text-text-2 text-xs font-500 whitespace-nowrap"
+                          >
+                            {kb}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-text-3 text-xs">—</span>
+                      )}
+                    </div>
+
+                    {/* Status */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-success" />
+                      <span className="text-sm text-text capitalize">{agent.status}</span>
+                    </div>
+
+                    {/* Updated */}
+                    <div className="text-sm text-text-3">{formatDate(agent.updated_at)}</div>
+
+                    {/* Action */}
+                    <div className="text-right">
+                      <button
+                        onClick={() => router.push(`/agents/${agent.id}`)}
+                        className="px-4 py-1.5 rounded-lg border border-border text-text text-sm font-500 hover:bg-panel transition-colors"
+                      >
+                        Open
+                      </button>
                     </div>
                   </div>
-                </Link>
-              ))}
+                ))}
+              </div>
             </div>
-          )}
-        </main>
+          </div>
+        )}
       </div>
     </div>
   )
