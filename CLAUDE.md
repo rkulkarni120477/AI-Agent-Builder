@@ -2,14 +2,14 @@
 
 ## Current Phase
 
-**Phase 2: Knowledge & Ingestion** (in progress)
-- [ ] Knowledge base CRUD (list, create, edit, delete)
-- [ ] File upload endpoint with streaming validation
-- [ ] Document ingestion pipeline (chunking, embedding, vector store)
-- [ ] Chroma vector store initialization and search
-- [ ] Knowledge base UI (create form, list page, upload widget)
-- [ ] File processing status tracking (queued → processing → ready/failed)
-- [ ] Document viewer and search in workspace
+**Phase 3: Workspace Editor** (starting)
+- [ ] TipTap rich-text editor integration
+- [ ] Block-based editor with agent result insertion
+- [ ] Workspace persistence to database
+- [ ] Document collaboration state management
+- [ ] Copy/paste with formatting preservation
+- [ ] Export to PDF/Word/HTML
+- [ ] Real-time autosave with conflict resolution
 
 ## Tech Stack (Fixed)
 
@@ -71,23 +71,23 @@
 - **LangSmith Tracing**: Optional behind env flag (`LANGSMITH_API_KEY`)?
 - **Rate Limiting**: Per-user, per-model, or global? Decision: Per-user initially; per-model in Phase 6.
 
-## What Blocks Phase 2
+## What Blocks Phase 3
 
-- [ ] KnowledgeBase and File models support document ingestion
-- [ ] Chroma client initializes with persistent storage at `data/vectors`
-- [ ] Document chunking pipeline with RecursiveCharacterTextSplitter
-- [ ] Bedrock embeddings client working for Titan V2
-- [ ] File upload endpoint validates MIME types and enforces size limits
-- [ ] Vector search returns top-k results with scores
-- [ ] Knowledge base UI renders create form and file upload widget
-- [ ] Document processing status updates in real-time (SSE or polling)
+- [ ] Workspace model (parent document with blocks and metadata)
+- [ ] TipTap editor initializes and renders with custom extensions
+- [ ] Agent result schema supports block insertion (text, code, table)
+- [ ] Document content persists to database on each keystroke
+- [ ] Editor shows agent output in-line with proper formatting
+- [ ] Autosave debouncing prevents excessive writes
+- [ ] Workspace UI renders editor toolbar matching mockup
+- [ ] Copy/paste preserves rich formatting from TipTap nodes
 
 ## Phases Checklist
 
 - [x] 0. Scaffold
 - [x] 1. Data & Agents CRUD
-- [ ] 2. Knowledge & Ingestion ← **current**
-- [ ] 3. Workspace Editor
+- [x] 2. Knowledge & Ingestion
+- [ ] 3. Workspace Editor ← **current**
 - [ ] 4. Agent Runtime & Chat
 - [ ] 5. Quick Actions & Review
 - [ ] 6. Runs, Settings, Hardening
