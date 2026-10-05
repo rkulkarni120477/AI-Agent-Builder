@@ -2,17 +2,14 @@
 
 ## Current Phase
 
-**Phase 0: Scaffold** (in progress)
-- [x] Repository layout and git
-- [x] `pyproject.toml` with all dependencies
-- [x] `frontend/package.json`
-- [x] Docker Compose setup
-- [x] Makefile with dev/test/lint commands
-- [x] `.env.example`
-- [ ] Backend: FastAPI app shell, health check, Bedrock client
-- [ ] Frontend: Next.js setup, design tokens CSS, app shell + sidebar
-- [ ] AWS IAM policy
-- [ ] Both apps start and lint passes
+**Phase 2: Knowledge & Ingestion** (in progress)
+- [ ] Knowledge base CRUD (list, create, edit, delete)
+- [ ] File upload endpoint with streaming validation
+- [ ] Document ingestion pipeline (chunking, embedding, vector store)
+- [ ] Chroma vector store initialization and search
+- [ ] Knowledge base UI (create form, list page, upload widget)
+- [ ] File processing status tracking (queued → processing → ready/failed)
+- [ ] Document viewer and search in workspace
 
 ## Tech Stack (Fixed)
 
@@ -74,21 +71,22 @@
 - **LangSmith Tracing**: Optional behind env flag (`LANGSMITH_API_KEY`)?
 - **Rate Limiting**: Per-user, per-model, or global? Decision: Per-user initially; per-model in Phase 6.
 
-## What Blocks Phase 1
+## What Blocks Phase 2
 
-- [ ] FastAPI app runs with health check at `/health`
-- [ ] Bedrock client initializes and `make bedrock-check` returns successful responses from each configured model
-- [ ] Frontend dev server runs on port 3000
-- [ ] Design tokens in `frontend/styles/tokens.css` match mockup
-- [ ] App shell (sidebar, nav) renders and matches mockup visual
-- [ ] All linters (ruff, mypy, ESLint, Prettier) pass on empty code
-- [ ] Docker Compose starts both services without errors
+- [ ] KnowledgeBase and File models support document ingestion
+- [ ] Chroma client initializes with persistent storage at `data/vectors`
+- [ ] Document chunking pipeline with RecursiveCharacterTextSplitter
+- [ ] Bedrock embeddings client working for Titan V2
+- [ ] File upload endpoint validates MIME types and enforces size limits
+- [ ] Vector search returns top-k results with scores
+- [ ] Knowledge base UI renders create form and file upload widget
+- [ ] Document processing status updates in real-time (SSE or polling)
 
 ## Phases Checklist
 
-- [ ] 0. Scaffold ← **current**
-- [ ] 1. Data & Agents CRUD
-- [ ] 2. Knowledge & Ingestion
+- [x] 0. Scaffold
+- [x] 1. Data & Agents CRUD
+- [ ] 2. Knowledge & Ingestion ← **current**
 - [ ] 3. Workspace Editor
 - [ ] 4. Agent Runtime & Chat
 - [ ] 5. Quick Actions & Review
