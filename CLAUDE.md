@@ -2,14 +2,14 @@
 
 ## Current Phase
 
-**Phase 4: Agent Runtime & Chat** (starting)
-- [ ] LangGraph orchestrator initialization
-- [ ] Agent invocation from chat interface
-- [ ] Streaming response handling (SSE)
-- [ ] Knowledge base retrieval integration
-- [ ] Result formatting and block insertion
-- [ ] Multi-turn conversation state
-- [ ] Agent-to-agent handoff execution
+**Phase 5: Quick Actions & Review** (starting)
+- [ ] Quick action buttons on agents (run, test, etc)
+- [ ] Agent output review/edit interface
+- [ ] Insertion of results into workspace
+- [ ] Result formatting (blocks, tables, code)
+- [ ] Approval/rejection workflow
+- [ ] Version tracking on insertions
+- [ ] Collaboration review features
 
 ## Tech Stack (Fixed)
 
@@ -71,16 +71,16 @@
 - **LangSmith Tracing**: Optional behind env flag (`LANGSMITH_API_KEY`)?
 - **Rate Limiting**: Per-user, per-model, or global? Decision: Per-user initially; per-model in Phase 6.
 
-## What Blocks Phase 4
+## What Blocks Phase 5
 
-- [ ] Chat interface with message list and input box
-- [ ] LangGraph agent executor builds runtime state
-- [ ] Agent invocation passes knowledge bases for retrieval
-- [ ] Streaming SSE responses from FastAPI
-- [ ] Result parsing and insertion into workspace
-- [ ] Multi-turn conversation history stored per workspace
-- [ ] Agent handoff detection and routing
-- [ ] UI updates as agent streams responses
+- [ ] Output formatting to TipTap block structure
+- [ ] Quick action UI with result preview
+- [ ] Insert button stores result in workspace
+- [ ] Review workflow tracks approvals
+- [ ] Result versioning and rollback
+- [ ] Collaboration features (comments, suggestions)
+- [ ] Export formatted results to multiple formats
+- [ ] Agent result templates per agent type
 
 ## Phases Checklist
 
@@ -88,6 +88,6 @@
 - [x] 1. Data & Agents CRUD
 - [x] 2. Knowledge & Ingestion
 - [x] 3. Workspace Editor
-- [ ] 4. Agent Runtime & Chat ← **current**
-- [ ] 5. Quick Actions & Review
+- [x] 4. Agent Runtime & Chat
+- [ ] 5. Quick Actions & Review ← **current**
 - [ ] 6. Runs, Settings, Hardening
