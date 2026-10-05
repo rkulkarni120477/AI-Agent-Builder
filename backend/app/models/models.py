@@ -270,4 +270,22 @@ class Message(Base, TimestampedMixin):
     run: Mapped["Run"] = relationship(back_populates="messages")
 
 
+class Review(Base, TimestampedMixin):
+    """Review/approval of agent results."""
+
+    __tablename__ = "reviews"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    run_id: Mapped[str] = mapped_column(String(36), ForeignKey("runs.id"), nullable=False)
+    workspace_id: Mapped[str] = mapped_column(String(36), ForeignKey("workspaces.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="pending")  # pending, approved, rejected, inserted
+    reviewer_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    inserted_at: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # Position in document
+
+    run: Mapped["Run"] = relationship("Run", foreign_keys=[run_id])
+    workspace: Mapped["Workspace"] = relationship("Workspace", foreign_keys=[workspace_id])
+
+
 from sqlalchemy import Column
