@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState, useRef, useEffect } from 'react'
 import { fetchRuns, invokeAgent } from '@/lib/chat-api'
 import { fetchAgents } from '@/lib/api'
+import { ResultActionsPanel } from './ResultActionsPanel'
 
 interface ChatPanelProps {
   workspace_id: string
@@ -22,6 +23,7 @@ export function ChatPanel({ workspace_id }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [currentRun, setCurrentRun] = useState<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Fetch agents
@@ -105,7 +107,7 @@ export function ChatPanel({ workspace_id }: ChatPanelProps) {
         }
       }
 
-      // Mark streaming message as complete
+      // Mark streaming message as complete and create run
       setMessages((prev) => {
         const newMessages = [...prev]
         const lastMsg = newMessages[newMessages.length - 1]
@@ -113,6 +115,14 @@ export function ChatPanel({ workspace_id }: ChatPanelProps) {
           delete lastMsg.is_streaming
         }
         return newMessages
+      })
+
+      // Set current run for quick actions
+      const agent = agents.find((a) => a.id === selectedAgentId)
+      setCurrentRun({
+        agent,
+        output_text: fullContent,
+        status: 'completed',
       })
     } catch (error) {
       // Add error message
@@ -138,6 +148,7 @@ export function ChatPanel({ workspace_id }: ChatPanelProps) {
           onChange={(e) => {
             setSelectedAgentId(e.target.value)
             setMessages([])
+            setCurrentRun(null)
           }}
           className="w-full px-3 py-2 rounded-input border border-border bg-surface text-text text-sm focus:outline-none focus:ring-1 focus:ring-accent"
         >
@@ -182,6 +193,17 @@ export function ChatPanel({ workspace_id }: ChatPanelProps) {
         ))}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Quick actions panel */}
+      {currentRun && currentRun.status === 'completed' && currentRun.output_text && (
+        <ResultActionsPanel
+          run={currentRun}
+          workspace_id={workspace_id}
+          onInserted={() => {
+            setCurrentRun(null)
+          }}
+        />
+      )}
 
       {/* Input form */}
       <form
