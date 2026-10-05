@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchWorkspace, updateWorkspace, updateWorkspaceContent } from '@/lib/workspace-api'
 import { Editor } from '@/components/Editor'
+import { ChatPanel } from '@/components/ChatPanel'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface WorkspacePageProps {
@@ -13,6 +14,7 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
   const queryClient = useQueryClient()
   const [content, setContent] = useState<any>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [showChat, setShowChat] = useState(true)
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
 
   const { data: workspace, isLoading, error } = useQuery({
@@ -138,6 +140,13 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
 
         <div className="flex items-center gap-2 ml-4">
           <button
+            onClick={() => setShowChat(!showChat)}
+            className="px-3 py-1.5 text-sm font-500 rounded-button border border-border hover:bg-panel"
+            title={showChat ? 'Hide chat' : 'Show chat'}
+          >
+            {showChat ? '×' : '💬'}
+          </button>
+          <button
             onClick={handleSave}
             disabled={updateMutation.isPending}
             className="px-3 py-1.5 text-sm font-500 rounded-button bg-accent text-white hover:opacity-90 disabled:opacity-50"
@@ -147,12 +156,22 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
         </div>
       </div>
 
-      {/* Editor */}
-      {content && (
-        <div className="flex-1 min-h-0">
-          <Editor value={content} onChange={handleContentChange} onSave={handleSave} />
-        </div>
-      )}
+      {/* Editor and Chat split view */}
+      <div className="flex-1 min-h-0 flex">
+        {/* Editor */}
+        {content && (
+          <div className={`${showChat ? 'w-2/3' : 'w-full'} flex flex-col border-r border-border`}>
+            <Editor value={content} onChange={handleContentChange} onSave={handleSave} />
+          </div>
+        )}
+
+        {/* Chat Panel */}
+        {showChat && (
+          <div className="w-1/3 flex flex-col">
+            <ChatPanel workspace_id={params.id} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
