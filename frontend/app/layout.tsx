@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import '../styles/tokens.css'
 import '../styles/globals.css'
+import { Providers } from './providers'
 
 export const metadata: Metadata = {
   title: 'Agent Studio',
@@ -14,7 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

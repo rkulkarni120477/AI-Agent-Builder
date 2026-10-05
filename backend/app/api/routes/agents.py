@@ -100,6 +100,22 @@ async def create_agent(
     )
 
 
+@router.get("/handle-available", response_model=HandleAvailabilityResponse)
+async def check_handle_availability(
+    handle: str = Query(..., min_length=1, max_length=100, regex="^[a-z0-9_-]+$"),
+    session: AsyncSession = Depends(get_session),
+):
+    """Check if a handle is available."""
+    existing = await session.execute(
+        select(Agent).where(and_(Agent.handle == handle, Agent.deleted_at.is_(None)))
+    )
+
+    if existing.scalars().first():
+        return HandleAvailabilityResponse(available=False, message="Handle already in use")
+
+    return HandleAvailabilityResponse(available=True)
+
+
 @router.get("/{agent_id}", response_model=AgentResponse)
 async def get_agent(
     agent_id: str,
@@ -178,19 +194,3 @@ async def delete_agent(
 
     result.deleted_at = datetime.utcnow()
     await session.commit()
-
-
-@router.get("/handle-available", response_model=HandleAvailabilityResponse)
-async def check_handle_availability(
-    handle: str = Query(..., min_length=1, max_length=100, regex="^[a-z0-9_-]+$"),
-    session: AsyncSession = Depends(get_session),
-):
-    """Check if a handle is available."""
-    existing = await session.execute(
-        select(Agent).where(and_(Agent.handle == handle, Agent.deleted_at.is_(None)))
-    )
-
-    if existing.scalars().first():
-        return HandleAvailabilityResponse(available=False, message="Handle already in use")
-
-    return HandleAvailabilityResponse(available=True)
