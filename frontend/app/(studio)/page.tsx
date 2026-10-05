@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 
 export default function StudioPage() {
   useEffect(() => {
-    redirect('/studio/agents')
+    redirect('/agents')
   }, [])
 
   return null

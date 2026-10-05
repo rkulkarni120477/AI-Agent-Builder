@@ -16,7 +16,7 @@ export default function NewKnowledgeBasePage() {
       return createKnowledgeBase({ name, description })
     },
     onSuccess: (kb) => {
-      router.push(`/studio/knowledge/${kb.id}`)
+      router.push(`/knowledge/${kb.id}`)
     },
     onError: (err) => {
       setError(err.message)

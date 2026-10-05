@@ -15,7 +15,7 @@ export default function NewWorkspacePage() {
       return createWorkspace({ title })
     },
     onSuccess: (workspace) => {
-      router.push(`/studio/workspace/${workspace.id}`)
+      router.push(`/workspace/${workspace.id}`)
     },
     onError: (err) => {
       setError(err.message)

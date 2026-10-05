@@ -48,9 +48,9 @@ export default function StudioLayout({
           {/* Nav Items */}
           <div className="flex flex-col gap-1">
             <Link
-              href="/studio/agents"
+              href="/agents"
               className={`flex items-center gap-3 min-h-11 px-3 rounded-button text-base font-500 ${
-                isActive('/studio/agents')
+                isActive('/agents')
                   ? 'bg-surface border border-border text-text'
                   : 'text-text-3 hover:bg-sidebar'
               }`}
@@ -72,9 +72,9 @@ export default function StudioLayout({
             </Link>
 
             <Link
-              href="/studio/workspace"
+              href="/workspace"
               className={`flex items-center gap-3 min-h-11 px-3 rounded-button text-base font-500 ${
-                isActive('/studio/workspace')
+                isActive('/workspace')
                   ? 'bg-surface border border-border text-text'
                   : 'text-text-3 hover:bg-sidebar'
               }`}
@@ -96,7 +96,7 @@ export default function StudioLayout({
             </Link>
 
             <Link
-              href="/studio/knowledge"
+              href="/knowledge"
               className="flex items-center gap-3 min-h-11 px-3 rounded-button text-base font-500 text-text-3 hover:bg-sidebar"
             >
               <svg
@@ -116,7 +116,7 @@ export default function StudioLayout({
             </Link>
 
             <Link
-              href="/studio/models"
+              href="/models"
               className="flex items-center gap-3 min-h-11 px-3 rounded-button text-base font-500 text-text-3 hover:bg-sidebar"
             >
               <svg
@@ -136,7 +136,7 @@ export default function StudioLayout({
             </Link>
 
             <Link
-              href="/studio/runs"
+              href="/runs"
               className="flex items-center gap-3 min-h-11 px-3 rounded-button text-base font-500 text-text-3 hover:bg-sidebar"
             >
               <svg
@@ -155,7 +155,7 @@ export default function StudioLayout({
             </Link>
 
             <Link
-              href="/studio/settings"
+              href="/settings"
               className="flex items-center gap-3 min-h-11 px-3 rounded-button text-base font-500 text-text-3 hover:bg-sidebar"
             >
               <svg
