@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.db import engine, init_db
-from app.api.routes import agents, models, knowledge_bases
+from app.api.routes import agents, models, knowledge_bases, workspaces
 
 
 @asynccontextmanager
@@ -35,6 +35,7 @@ app.add_middleware(
 app.include_router(agents.router, prefix="/api")
 app.include_router(models.router, prefix="/api")
 app.include_router(knowledge_bases.router, prefix="/api")
+app.include_router(workspaces.router, prefix="/api")
 
 
 @app.get("/health")

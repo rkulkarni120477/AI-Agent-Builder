@@ -217,4 +217,20 @@ class File(Base, TimestampedMixin):
     knowledge_base: Mapped[Optional["KnowledgeBase"]] = relationship(back_populates="files")
 
 
+class Workspace(Base, TimestampedMixin, SoftDeleteMixin):
+    """Document workspace for editing and collaboration."""
+
+    __tablename__ = "workspaces"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    content: Mapped[str] = mapped_column(Text, default="{\"type\":\"doc\",\"content\":[]}")  # TipTap JSON
+    owner_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+
+    owner: Mapped["User"] = relationship("User", foreign_keys=[owner_id])
+
+
 from sqlalchemy import Column
