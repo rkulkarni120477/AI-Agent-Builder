@@ -2,14 +2,14 @@
 
 ## Current Phase
 
-**Phase 3: Workspace Editor** (starting)
-- [ ] TipTap rich-text editor integration
-- [ ] Block-based editor with agent result insertion
-- [ ] Workspace persistence to database
-- [ ] Document collaboration state management
-- [ ] Copy/paste with formatting preservation
-- [ ] Export to PDF/Word/HTML
-- [ ] Real-time autosave with conflict resolution
+**Phase 4: Agent Runtime & Chat** (starting)
+- [ ] LangGraph orchestrator initialization
+- [ ] Agent invocation from chat interface
+- [ ] Streaming response handling (SSE)
+- [ ] Knowledge base retrieval integration
+- [ ] Result formatting and block insertion
+- [ ] Multi-turn conversation state
+- [ ] Agent-to-agent handoff execution
 
 ## Tech Stack (Fixed)
 
@@ -71,23 +71,23 @@
 - **LangSmith Tracing**: Optional behind env flag (`LANGSMITH_API_KEY`)?
 - **Rate Limiting**: Per-user, per-model, or global? Decision: Per-user initially; per-model in Phase 6.
 
-## What Blocks Phase 3
+## What Blocks Phase 4
 
-- [ ] Workspace model (parent document with blocks and metadata)
-- [ ] TipTap editor initializes and renders with custom extensions
-- [ ] Agent result schema supports block insertion (text, code, table)
-- [ ] Document content persists to database on each keystroke
-- [ ] Editor shows agent output in-line with proper formatting
-- [ ] Autosave debouncing prevents excessive writes
-- [ ] Workspace UI renders editor toolbar matching mockup
-- [ ] Copy/paste preserves rich formatting from TipTap nodes
+- [ ] Chat interface with message list and input box
+- [ ] LangGraph agent executor builds runtime state
+- [ ] Agent invocation passes knowledge bases for retrieval
+- [ ] Streaming SSE responses from FastAPI
+- [ ] Result parsing and insertion into workspace
+- [ ] Multi-turn conversation history stored per workspace
+- [ ] Agent handoff detection and routing
+- [ ] UI updates as agent streams responses
 
 ## Phases Checklist
 
 - [x] 0. Scaffold
 - [x] 1. Data & Agents CRUD
 - [x] 2. Knowledge & Ingestion
-- [ ] 3. Workspace Editor ← **current**
-- [ ] 4. Agent Runtime & Chat
+- [x] 3. Workspace Editor
+- [ ] 4. Agent Runtime & Chat ← **current**
 - [ ] 5. Quick Actions & Review
 - [ ] 6. Runs, Settings, Hardening
