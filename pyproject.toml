@@ -20,6 +20,8 @@ dependencies = [
     "langchain==0.2.14",
     "langchain-aws==0.1.15",
     "langchain-core==0.2.23",
+    "langchain-chroma==0.1.4",
+    "langchain-text-splitters==0.0.2",
     "langgraph==0.1.32",
     "chromadb==0.5.3",
     "PyPDF2==4.3.1",
