@@ -5,6 +5,7 @@ from typing import Optional
 
 from sqlalchemy import (
     Boolean,
+    Column,
     Enum,
     Float,
     ForeignKey,
@@ -14,7 +15,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, foreign
 
 from app.models.base import Base, SoftDeleteMixin, TimestampedMixin
 
@@ -121,30 +122,34 @@ class Agent(Base, TimestampedMixin, SoftDeleteMixin):
     approved_callers: Mapped[list["Agent"]] = relationship(
         "Agent",
         secondary=agent_approved_callers,
-        primaryjoin=agent_approved_callers.c.agent_id,
-        secondaryjoin=agent_approved_callers.c.caller_agent_id,
+        primaryjoin=lambda: foreign(agent_approved_callers.c.agent_id) == Agent.id,
+        secondaryjoin=lambda: foreign(agent_approved_callers.c.caller_agent_id) == Agent.id,
         back_populates="approved_for",
+        viewonly=True,
     )
     approved_for: Mapped[list["Agent"]] = relationship(
         "Agent",
         secondary=agent_approved_callers,
-        primaryjoin=agent_approved_callers.c.caller_agent_id,
-        secondaryjoin=agent_approved_callers.c.agent_id,
+        primaryjoin=lambda: foreign(agent_approved_callers.c.caller_agent_id) == Agent.id,
+        secondaryjoin=lambda: foreign(agent_approved_callers.c.agent_id) == Agent.id,
         back_populates="approved_callers",
+        viewonly=True,
     )
     handoff_targets: Mapped[list["Agent"]] = relationship(
         "Agent",
         secondary=agent_handoffs,
-        primaryjoin=agent_handoffs.c.agent_id,
-        secondaryjoin=agent_handoffs.c.target_agent_id,
+        primaryjoin=lambda: foreign(agent_handoffs.c.agent_id) == Agent.id,
+        secondaryjoin=lambda: foreign(agent_handoffs.c.target_agent_id) == Agent.id,
         back_populates="handoff_sources",
+        viewonly=True,
     )
     handoff_sources: Mapped[list["Agent"]] = relationship(
         "Agent",
         secondary=agent_handoffs,
-        primaryjoin=agent_handoffs.c.target_agent_id,
-        secondaryjoin=agent_handoffs.c.agent_id,
+        primaryjoin=lambda: foreign(agent_handoffs.c.target_agent_id) == Agent.id,
+        secondaryjoin=lambda: foreign(agent_handoffs.c.agent_id) == Agent.id,
         back_populates="handoff_targets",
+        viewonly=True,
     )
 
 

@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy import select
 
 from app.core.config import settings
-from app.core.db import AsyncSessionLocal, init_engine
+from app.core.db import AsyncSessionLocal, init_db, engine
 from app.models import Agent, KnowledgeBase, Model, User
 
 
@@ -17,8 +17,8 @@ async def main():
     print(f"Database: {settings.database_url}")
 
     try:
-        await init_engine()
-        print("✓ Database initialized")
+        await init_db()
+        print("[OK] Database initialized")
 
         async with AsyncSessionLocal() as session:
             # Create default user
@@ -189,13 +189,13 @@ async def main():
                 session.add(agent)
 
             await session.commit()
-            print(f"✓ Created {len(models_data)} models")
-            print(f"✓ Created {len(kbs_data)} knowledge bases")
-            print(f"✓ Created {len(agents_data)} agents")
-            print("✓ Seeding complete")
+            print(f"[OK] Created {len(models_data)} models")
+            print(f"[OK] Created {len(kbs_data)} knowledge bases")
+            print(f"[OK] Created {len(agents_data)} agents")
+            print("[OK] Seeding complete")
 
     except Exception as e:
-        print(f"✗ Seeding failed: {e}")
+        print(f"[FAIL] Seeding failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

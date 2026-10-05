@@ -1,3 +1,4 @@
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
@@ -25,13 +26,17 @@ async def init_engine():
     AsyncSessionLocal.configure(bind=engine)
 
     async with engine.connect() as conn:
-        await conn.execute("PRAGMA journal_mode=WAL")
-        await conn.execute("PRAGMA foreign_keys=ON")
+        await conn.execute(text("PRAGMA journal_mode=WAL"))
+        await conn.execute(text("PRAGMA foreign_keys=ON"))
         await conn.commit()
 
 
 async def init_db():
     await init_engine()
+    # Create all tables
+    from app.models.base import Base
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 async def get_session() -> AsyncSession:
