@@ -146,9 +146,27 @@ async def get_agent(
         raise HTTPException(status_code=404, detail="Agent not found")
 
     return AgentResponse(
-        **result.__dict__,
+        id=result.id,
+        name=result.name,
+        handle=result.handle,
+        type=result.type,
+        description=result.description,
+        instructions=result.instructions,
+        when_to_call=result.when_to_call,
+        input_spec=result.input_spec,
+        output_spec=result.output_spec,
+        callable_by=result.callable_by,
+        timeout_seconds=result.timeout_seconds,
+        model_id=result.model_id,
+        temperature=result.temperature,
+        strict_grounding=result.strict_grounding,
+        guardrail_id=result.guardrail_id,
+        guardrail_version=result.guardrail_version,
+        status=result.status,
+        version=result.version,
         created_at=result.created_at.isoformat(),
         updated_at=result.updated_at.isoformat(),
+        deleted_at=result.deleted_at.isoformat() if result.deleted_at else None,
     )
 
 
