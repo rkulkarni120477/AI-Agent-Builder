@@ -288,4 +288,37 @@ class Review(Base, TimestampedMixin):
     workspace: Mapped["Workspace"] = relationship("Workspace", foreign_keys=[workspace_id])
 
 
+class WorkspaceSettings(Base, TimestampedMixin):
+    """Settings for workspace (sharing, collaboration)."""
+
+    __tablename__ = "workspace_settings"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    workspace_id: Mapped[str] = mapped_column(String(36), ForeignKey("workspaces.id"), nullable=False, unique=True)
+    is_shared: Mapped[bool] = mapped_column(Boolean, default=False)
+    share_token: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    allow_comments: Mapped[bool] = mapped_column(Boolean, default=True)
+    allow_editing: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    workspace: Mapped["Workspace"] = relationship("Workspace", foreign_keys=[workspace_id])
+
+
+class UserSettings(Base, TimestampedMixin):
+    """User preferences and settings."""
+
+    __tablename__ = "user_settings"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False, unique=True)
+    theme: Mapped[str] = mapped_column(String(50), default="light")  # light, dark, auto
+    notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    api_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+
+
 from sqlalchemy import Column
