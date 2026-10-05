@@ -137,7 +137,7 @@ export default function AgentsPage() {
                 <div>Knowledge</div>
                 <div>Status</div>
                 <div>Updated</div>
-                <div className="text-right">Action</div>
+                <div></div>
               </div>
 
               {/* Table Rows */}
@@ -149,10 +149,10 @@ export default function AgentsPage() {
                   >
                     {/* Agent */}
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-accent bg-opacity-10 flex items-center justify-center flex-shrink-0">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent">
-                          <rect x="4" y="2" width="16" height="16" rx="2" />
-                          <path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01M4 22h16" />
+                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(79, 172, 254, 0.15)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-blue-600" style={{ color: '#4fac7e' }}>
+                          <rect x="5" y="6" width="14" height="12" rx="1.5" />
+                          <path d="M5 9h14M8 18v2M16 18v2" />
                         </svg>
                       </div>
                       <div className="min-w-0">
@@ -171,7 +171,7 @@ export default function AgentsPage() {
                         agent.knowledge_bases.map((kb, idx) => (
                           <span
                             key={idx}
-                            className="px-3 py-1.5 rounded-full bg-sidebar text-text-2 text-xs font-500 whitespace-nowrap border border-border"
+                            className="px-3 py-1.5 rounded-full bg-yellow-50 text-text-2 text-xs font-500 whitespace-nowrap border border-yellow-200"
                           >
                             {kb}
                           </span>
