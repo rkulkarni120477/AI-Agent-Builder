@@ -1,0 +1,2337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI Agent Builder</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=Instrument+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Instrument Sans',system-ui,sans-serif;background:#F3EFE6;color:#1F1D18}
+a{color:#0E5A57}a:hover{color:#093F3D}
+button{font-family:inherit}
+input,textarea{font-family:inherit}
+.dz:focus-within{outline:3px solid #0E5A57;outline-offset:2px}
+#doc-body{outline:none;min-height:560px}
+#doc-body,#preview-body{font-size:17px;line-height:1.75;color:#1F1D18}
+:is(#doc-body,#preview-body) h1{font-family:'Fraunces',Georgia,serif;font-size:32px;line-height:1.2;margin:0 0 16px;font-weight:600;letter-spacing:-0.01em}
+:is(#doc-body,#preview-body) h2{font-family:'Fraunces',Georgia,serif;font-size:22px;line-height:1.3;margin:28px 0 8px;font-weight:600}
+:is(#doc-body,#preview-body) h3{font-family:'Fraunces',Georgia,serif;font-size:18px;line-height:1.3;margin:20px 0 6px;font-weight:600}
+:is(#doc-body,#preview-body) h4{font-size:16px;line-height:1.3;margin:16px 0 6px;font-weight:600}
+:is(#doc-body,#preview-body) p{margin:0 0 12px}
+:is(#doc-body,#preview-body) ul,:is(#doc-body,#preview-body) ol{margin:0 0 12px;padding-left:24px}
+:is(#doc-body,#preview-body) li{margin:0 0 4px}
+:is(#doc-body,#preview-body) table{border-collapse:collapse;width:100%;margin:0 0 16px}
+:is(#doc-body,#preview-body) td,:is(#doc-body,#preview-body) th{border:1px solid #C9C1AE;padding:8px 10px;vertical-align:top;min-width:40px}
+:is(#doc-body,#preview-body) th{background:#EFEADD;text-align:left}
+:is(#doc-body,#preview-body) blockquote{margin:0 0 12px;padding:4px 16px;border-left:4px solid #0E5A57;color:#3D392F}
+:is(#doc-body,#preview-body) pre{background:#F3EFE6;border:1px solid #DAD3C3;border-radius:8px;padding:12px;font-family:Consolas,Menlo,monospace;font-size:14px;line-height:1.5;white-space:pre-wrap;margin:0 0 12px}
+:is(#doc-body,#preview-body) hr{border:none;border-top:1px solid #C9C1AE;margin:20px 0}
+:is(#doc-body,#preview-body) hr.pb{border-top:2px dashed #8C846F}
+:is(#doc-body,#preview-body) details{border:1px solid #DAD3C3;border-radius:8px;padding:8px 12px;margin:0 0 12px}
+:is(#doc-body,#preview-body) summary{font-weight:600;cursor:pointer}
+:is(#doc-body,#preview-body) a{color:#0E5A57;text-decoration:underline}
+:is(#doc-body,#preview-body) img{max-width:100%;height:auto}
+#doc-body.showblocks :is(p,h1,h2,h3,h4,ul,ol,li,blockquote,pre,table,details){outline:1px dashed #B5AD9A;outline-offset:2px}
+.paper:focus-within{box-shadow:0 0 0 3px rgba(14,90,87,0.35)}
+@media print{body *{visibility:hidden}#doc-body,#doc-body *{visibility:visible}#doc-body{position:absolute;left:0;top:0;width:100%}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 100%; box-sizing: border-box; display: flex; background: #F3EFE6; color: #1F1D18; font-family: 'Instrument Sans', system-ui, sans-serif">
+
+  <!-- Sidebar -->
+  <sc-if value="{{ showSidebar }}" hint-placeholder-val="{{ true }}">
+  <nav aria-label="Primary" style="width: 232px; flex-shrink: 0; box-sizing: border-box; padding: 28px 16px; border-right: 1px solid #DAD3C3; background: #EBE6DA; display: flex; flex-direction: column; gap: 32px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px">
+      <div style="width: 32px; height: 32px; border-radius: 8px; background: {{accent}}; display: flex; align-items: center; justify-content: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"></path></svg>
+      </div>
+      <div style="font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Agent Studio</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <button onClick="{{ goList }}" style="{{ navAgentsStyle }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3"></rect><path d="M12 8V4M9 14h.01M15 14h.01"></path></svg>
+        Agents
+      </button>
+      <button onClick="{{ goWorkspace }}" style="{{ navWorkspaceStyle }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h9l5 5v13H5z"></path><path d="M14 3v5h5M9 13h6M9 17h4"></path></svg>
+        Workspace
+      </button>
+      <a href="#knowledge" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #4A463C; font-size: 15px; font-weight: 500; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path></svg>
+        Knowledge bases
+      </a>
+      <a href="#models" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #4A463C; font-size: 15px; font-weight: 500; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5z"></path><path d="M3 13l9 5 9-5"></path></svg>
+        Models
+      </a>
+      <a href="#runs" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #4A463C; font-size: 15px; font-weight: 500; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg>
+        Runs &amp; logs
+      </a>
+      <a href="#settings" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #4A463C; font-size: 15px; font-weight: 500; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+        Settings
+      </a>
+    </div>
+    <button onClick="{{ toggleSidebar }}" aria-label="Hide sidebar" style="margin-top: auto; box-sizing: border-box; width: 100%; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: #4A463C; font-size: 15px; font-weight: 500; font-family: inherit; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16M16 10l-2 2 2 2"></path></svg>
+      Hide sidebar
+    </button>
+  </nav>
+  </sc-if>
+  <sc-if value="{{ sbHidden }}" hint-placeholder-val="{{ false }}">
+    <div style="width: 56px; flex-shrink: 0; box-sizing: border-box; padding: 20px 6px; border-right: 1px solid #DAD3C3; background: #EBE6DA; display: flex; flex-direction: column; align-items: center">
+      <button onClick="{{ toggleSidebar }}" aria-label="Show sidebar" title="Show sidebar" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FBF9F4; color: #1F1D18; cursor: pointer; display: flex; align-items: center; justify-content: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16M13 10l2 2-2 2"></path></svg>
+      </button>
+    </div>
+  </sc-if>
+
+  <!-- Main -->
+  <main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+<sc-if value="{{ showList }}" hint-placeholder-val="{{ true }}">
+
+
+    <header style="display: flex; align-items: center; justify-content: space-between; padding: 28px 40px 24px 40px; border-bottom: 1px solid #DAD3C3">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="font-size: 14px; color: #5B564B">Workspace</div>
+        <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1">Agents</h1>
+      </div>
+      <button onClick="{{ goCreate }}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 22px; box-sizing: border-box; border-radius: 10px; background: {{accent}}; border: 1px solid {{accent}}; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        Create new agent
+      </button>
+    </header>
+
+    <div style="padding: 28px 40px 40px 40px; display: flex; flex-direction: column; gap: 20px">
+
+      <!-- Toolbar -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px">
+        <div style="position: relative; width: 380px">
+          <label for="agent-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search agents</label>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B564B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; left: 14px; top: 15px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          <input id="agent-search" type="search" value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search agents" style="box-sizing: border-box; width: 100%; height: 48px; padding: 0 14px 0 42px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+        </div>
+        <div role="group" aria-label="Filter by status" style="display: flex; gap: 8px">
+          <sc-for list="{{ statusFilters }}" as="f" hint-placeholder-count="4">
+            <button aria-pressed="{{ f.active }}" onClick="{{ f.pick }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- List -->
+      <section aria-label="Agent list" style="background: #FBF9F4; border: 1px solid #DAD3C3; border-radius: 16px; overflow: hidden">
+        <div style="display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.4fr) minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 88px; column-gap: 20px; padding: 14px 24px; background: #EFEADD; border-bottom: 1px solid #DAD3C3; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #4A463C">
+          <div>Agent</div>
+          <div>Model</div>
+          <div>Knowledge</div>
+          <div>Status</div>
+          <div>Updated</div>
+          <div></div>
+        </div>
+
+        <sc-for list="{{ rows }}" as="a" hint-placeholder-count="6">
+          <div style="display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.4fr) minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 88px; column-gap: 20px; align-items: center; padding: 18px 24px; border-bottom: 1px solid #E6E0D2">
+            <div style="display: flex; align-items: center; gap: 14px; min-width: 0">
+              <div style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: #E4EDEA; display: flex; align-items: center; justify-content: center">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E5A57" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3"></rect><path d="M12 8V4M9 14h.01M15 14h.01"></path></svg>
+              </div>
+              <div style="min-width: 0; display: flex; flex-direction: column; gap: 3px">
+                <button onClick="{{ goCreate }}" style="border: none; background: none; padding: 0; text-align: left; cursor: pointer; font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 600; color: #1F1D18">{{ a.name }}</button>
+                <div style="font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #0E5A57">{{ a.type }}</div>
+                <div style="font-size: 14px; line-height: 1.4; color: #4A463C">{{ a.desc }}</div>
+              </div>
+            </div>
+            <div style="font-size: 15px; font-weight: 500">{{ a.model }}</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+              <sc-for list="{{ a.kbs }}" as="k" hint-placeholder-count="2">
+                <span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: #EFEADD; border: 1px solid #DAD3C3; font-size: 13px; font-weight: 500; color: #3D392F">{{ k.label }}</span>
+              </sc-for>
+            </div>
+            <div>
+              <span style="{{ a.pillStyle }}">
+                <span style="{{ a.dotStyle }}"></span>
+                {{ a.status }}
+              </span>
+            </div>
+            <div style="font-size: 14px; color: #4A463C">{{ a.updated }}</div>
+            <div style="display: flex; justify-content: flex-end">
+              <button onClick="{{ goCreate }}" aria-label="Open agent" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FFFFFF; color: #1F1D18; font-size: 14px; font-weight: 600; cursor: pointer">Open</button>
+            </div>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 56px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+            <div style="font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 600">No agents match</div>
+            <div style="font-size: 15px; color: #4A463C">Try a different search or status filter.</div>
+          </div>
+        </sc-if>
+      </section>
+
+      <div style="font-size: 14px; color: #5B564B">{{ countLabel }}</div>
+    </div>
+  
+</sc-if>
+<sc-if value="{{ showCreate }}" hint-placeholder-val="{{ false }}">
+
+
+    <header style="display: flex; align-items: center; justify-content: space-between; padding: 28px 40px 24px 40px; border-bottom: 1px solid #DAD3C3">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="font-size: 14px; line-height: 20px; color: #5B564B"><button onClick="{{ goList }}" style="border: none; background: none; padding: 0; cursor: pointer; font-size: 14px; line-height: 20px; font-weight: 600; color: #0E5A57; text-decoration: underline">Agents</button> / New agent</div>
+        <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 37px">Create an agent</h1>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <button onClick="{{ goList }}" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border: none; background: none; color: #4A463C; font-size: 15px; font-weight: 600; cursor: pointer">Cancel</button>
+        <button onClick="{{ saveDraft }}" style="min-height: 44px; padding: 0 20px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FBF9F4; color: #1F1D18; font-size: 15px; font-weight: 600; cursor: pointer">Save draft</button>
+        <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ createAgent }}" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; box-sizing: border-box; border-radius: 10px; border: 1px solid {{accent}}; background: {{accent}}; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer">Create agent</button>
+        </sc-if>
+        <sc-if value="{{ notReady }}" hint-placeholder-val="{{ true }}">
+          <button disabled="" aria-disabled="true" style="min-height: 44px; padding: 0 22px; border-radius: 10px; border: 1px solid #C9C1AE; background: #E4DFD2; color: #5B564B; font-size: 15px; font-weight: 600; cursor: not-allowed">Create agent</button>
+        </sc-if>
+      </div>
+    </header>
+
+    <div style="display: flex; gap: 32px; padding: 32px 40px 40px 40px; align-items: flex-start">
+
+      <!-- Form column -->
+      <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 28px">
+
+        <!-- 1 Basics -->
+        <section aria-labelledby="h-identity" style="background: #FBF9F4; border: 1px solid #DAD3C3; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+          <div style="height: 32px; display: flex; align-items: center; justify-content: space-between">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div style="width: 28px; height: 28px; border-radius: 50%; background: #1F1D18; color: #FFFFFF; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center">1</div>
+              <h2 id="h-identity" style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600">Basics</h2>
+            </div>
+            <div style="font-size: 14px; color: #5B564B"><span style="color: #9B2C1F; font-weight: 600">*</span> Required</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="f-name" style="font-size: 14px; line-height: 20px; font-weight: 600">Agent name <span style="color: #9B2C1F">*</span></label>
+              <input id="f-name" type="text" value="{{ name }}" onChange="{{ onName }}" placeholder="e.g. Policy Assistant" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="f-handle" style="font-size: 14px; line-height: 20px; font-weight: 600">Call handle <span style="color: #9B2C1F">*</span></label>
+              <input id="f-handle" type="text" value="{{ handle }}" onChange="{{ onHandle }}" placeholder="policy-assistant" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="f-type" style="font-size: 14px; line-height: 20px; font-weight: 600">Agent type</label>
+            <select id="f-type" value="{{ agentType }}" onChange="{{ onType }}" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+              <option value="">Select a type</option>
+              <option value="Standard alignment">Standard alignment</option>
+              <option value="Content tagging">Content tagging</option>
+              <option value="Skill extraction">Skill extraction</option>
+              <option value="Skill gap analysis">Skill gap analysis</option>
+              <option value="Content creation">Content creation</option>
+              <option value="Curriculum creation">Curriculum creation</option>
+              <option value="Micro-course creation">Micro-course creation</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="f-instr" style="font-size: 14px; line-height: 20px; font-weight: 600">Instructions <span style="color: #9B2C1F">*</span></label>
+            <textarea id="f-instr" value="{{ instr }}" onChange="{{ onInstr }}" placeholder="Describe the job, the standards or frameworks it works with, and the output it should produce." style="box-sizing: border-box; height: 144px; padding: 12px 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; line-height: 24px; color: #1F1D18; resize: none"></textarea>
+          </div>
+        </section>
+
+        <!-- 2 Multi-agent interface -->
+        <section aria-labelledby="h-multi" style="background: #FBF9F4; border: 1px solid #DAD3C3; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+          <div style="height: 32px; display: flex; align-items: center; gap: 12px">
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: #1F1D18; color: #FFFFFF; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center">2</div>
+            <h2 id="h-multi" style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600">How other agents call it</h2>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="f-when" style="font-size: 14px; line-height: 20px; font-weight: 600">When should other agents call this one? <span style="color: #9B2C1F">*</span></label>
+            <textarea id="f-when" value="{{ when }}" onChange="{{ onWhen }}" placeholder="e.g. Call when a lesson needs to be aligned to academic standards." style="box-sizing: border-box; height: 96px; padding: 12px 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; line-height: 24px; color: #1F1D18; resize: none"></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="f-in" style="font-size: 14px; line-height: 20px; font-weight: 600">Input it expects <span style="color: #9B2C1F">*</span></label>
+              <textarea id="f-in" value="{{ inSpec }}" onChange="{{ onIn }}" placeholder="e.g. Lesson text, grade level and target standards set." style="box-sizing: border-box; height: 112px; padding: 12px 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; line-height: 24px; color: #1F1D18; resize: none"></textarea>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="f-out" style="font-size: 14px; line-height: 20px; font-weight: 600">Output it returns <span style="color: #9B2C1F">*</span></label>
+              <textarea id="f-out" value="{{ outSpec }}" onChange="{{ onOut }}" placeholder="e.g. JSON list of aligned standards with a rationale for each." style="box-sizing: border-box; height: 112px; padding: 12px 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; line-height: 24px; color: #1F1D18; resize: none"></textarea>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div id="l-callable" style="font-size: 14px; line-height: 20px; font-weight: 600">Who can call this agent</div>
+            <div role="group" aria-labelledby="l-callable" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+              <sc-for list="{{ callOptions }}" as="c" hint-placeholder-count="3">
+                <button aria-pressed="{{ c.selected }}" onClick="{{ c.pick }}" style="{{ c.style }}">
+                  <span style="font-size: 15px; line-height: 20px; font-weight: 600; color: #1F1D18">{{ c.label }}</span>
+                  <span style="font-size: 13px; line-height: 18px; color: #4A463C">{{ c.note }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div id="l-hand" style="font-size: 14px; line-height: 20px; font-weight: 600">Can hand off to</div>
+            <div role="group" aria-labelledby="l-hand" style="display: flex; flex-wrap: wrap; gap: 8px">
+              <sc-for list="{{ handoffs }}" as="h" hint-placeholder-count="6">
+                <button aria-pressed="{{ h.selected }}" onClick="{{ h.toggle }}" style="{{ h.style }}">
+                  <sc-if value="{{ h.selected }}" hint-placeholder-val="{{ false }}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+                  </sc-if>
+                  {{ h.name }}
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; max-width: 320px">
+            <label for="f-timeout" style="font-size: 14px; line-height: 20px; font-weight: 600">Time limit per call (seconds)</label>
+            <input id="f-timeout" type="number" value="{{ timeout }}" onChange="{{ onTimeout }}" placeholder="[SECONDS]" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+          </div>
+        </section>
+
+        <!-- 3 Model -->
+        <section aria-labelledby="h-model" style="background: #FBF9F4; border: 1px solid #DAD3C3; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+          <div style="height: 32px; display: flex; align-items: center; justify-content: space-between">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div style="width: 28px; height: 28px; border-radius: 50%; background: #1F1D18; color: #FFFFFF; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center">3</div>
+              <h2 id="h-model" style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600">Model</h2>
+            </div>
+            <div style="font-size: 14px; color: #5B564B">You can change this any time</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="f-model" style="font-size: 14px; line-height: 20px; font-weight: 600">Choose a model <span style="color: #9B2C1F">*</span></label>
+            <select id="f-model" value="{ model }" onChange="{ onModel }" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+              <option value="opus">Claude Opus 5.5 · Most capable</option>
+              <option value="sonnet">Claude Sonnet 5.5 · Recommended</option>
+              <option value="haiku">Claude Haiku 4.5 · Fastest</option>
+            </select>
+            <div style="font-size: 14px; line-height: 20px; color: #4A463C">{{ modelNote }}</div>
+          </div>
+        </section>
+
+        <!-- 4 Knowledge -->
+        <section aria-labelledby="h-kb" style="background: #FBF9F4; border: 1px solid #DAD3C3; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+          <div style="height: 32px; display: flex; align-items: center; gap: 12px">
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: #1F1D18; color: #FFFFFF; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center">4</div>
+            <h2 id="h-kb" style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600">Knowledge</h2>
+          </div>
+          <p style="margin: 0; font-size: 15px; line-height: 22px; color: #4A463C">Add content from a tagged knowledge base, upload files directly, or do both.</p>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 12px">
+            <button aria-expanded="{{ kbOpen }}" onClick="{{ toggleKb }}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 20px; border-radius: 10px; border: 1px solid {{accent}}; background: #FFFFFF; color: {{accent}}; font-size: 15px; font-weight: 600; cursor: pointer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path></svg>
+              {{ browseLabel }}
+            </button>
+            <label class="dz" onDragOver="{{ onDragOver }}" onDrop="{{ onDrop }}" style="position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 20px; box-sizing: border-box; border-radius: 10px; border: 1px solid {{accent}}; background: {{accent}}; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer">
+              <input type="file" multiple="" accept=".pdf,.docx,.txt,.md,.csv,.pptx,.xlsx" onChange="{{ onFiles }}" style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+              Upload files
+            </label>
+          </div>
+
+          <sc-if value="{{ kbOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="border: 1px solid #C9C1AE; border-radius: 14px; background: #FFFFFF; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+              <div style="display: flex; align-items: center; justify-content: space-between">
+                <div style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 600">Knowledge bases</div>
+                <button onClick="{{ toggleKb }}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #1F1D18; background: #1F1D18; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer">Done</button>
+              </div>
+              <div role="group" aria-label="Filter by tag" style="display: flex; flex-wrap: wrap; gap: 8px">
+                <sc-for list="{{ tagFilters }}" as="f" hint-placeholder-count="10">
+                  <button aria-pressed="{{ f.active }}" onClick="{{ f.pick }}" style="{{ f.style }}">{{ f.label }}</button>
+                </sc-for>
+              </div>
+              <div style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; border: 1px solid #E6E0D2; border-radius: 10px">
+                <sc-for list="{{ kbs }}" as="k" hint-placeholder-count="6">
+                  <button aria-pressed="{{ k.selected }}" onClick="{{ k.toggle }}" style="{{ k.rowStyle }}">
+                    <span style="{{ k.boxStyle }}">
+                      <sc-if value="{{ k.selected }}" hint-placeholder-val="{{ false }}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+                      </sc-if>
+                    </span>
+                    <span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left">
+                      <span style="font-size: 15px; line-height: 20px; font-weight: 600; color: #1F1D18">{{ k.name }}</span>
+                      <span style="font-size: 13px; line-height: 18px; color: #4A463C">{{ k.desc }}</span>
+                    </span>
+                    <span style="display: flex; gap: 6px; flex-shrink: 0">
+                      <sc-for list="{{ k.tags }}" as="t" hint-placeholder-count="2">
+                        <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #EFEADD; border: 1px solid #DAD3C3; font-size: 12px; font-weight: 500; color: #3D392F">{{ t.label }}</span>
+                      </sc-for>
+                    </span>
+                  </button>
+                </sc-for>
+                <sc-if value="{{ noKbs }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding: 20px; font-size: 14px; color: #4A463C">No knowledge bases with this tag.</div>
+                </sc-if>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 14px; line-height: 20px; font-weight: 600">Added to this agent</div>
+            <div style="border: 1px solid #DAD3C3; border-radius: 12px; background: #FFFFFF; padding: 4px 14px; display: flex; flex-direction: column">
+              <sc-if value="{{ nothingAdded }}" hint-placeholder-val="{{ true }}">
+                <div style="min-height: 56px; display: flex; align-items: center; font-size: 14px; line-height: 20px; color: #4A463C">Nothing added yet. Browse a knowledge base or upload files.</div>
+              </sc-if>
+              <sc-for list="{{ selectedKbs }}" as="s" hint-placeholder-count="2">
+                <div style="display: flex; align-items: center; gap: 12px; min-height: 52px">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E5A57" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path></svg>
+                  <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+                    <span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #1F1D18">{{ s.name }}</span>
+                    <span style="font-size: 12px; line-height: 16px; color: #4A463C">Knowledge base</span>
+                  </div>
+                  <button aria-label="{{ s.removeLabel }}" onClick="{{ s.remove }}" style="width: 44px; height: 44px; flex-shrink: 0; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3D392F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+                  </button>
+                </div>
+              </sc-for>
+              <sc-for list="{{ uploads }}" as="u" hint-placeholder-count="2">
+                <div style="display: flex; align-items: center; gap: 12px; min-height: 52px">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E5A57" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg>
+                  <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+                    <span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #1F1D18; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ u.name }}</span>
+                    <span style="font-size: 12px; line-height: 16px; color: #4A463C">Uploaded file · {{ u.size }}</span>
+                  </div>
+                  <button aria-label="{{ u.removeLabel }}" onClick="{{ u.remove }}" style="width: 44px; height: 44px; flex-shrink: 0; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3D392F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+                  </button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ hasUploads }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="f-uptags" style="font-size: 14px; line-height: 20px; font-weight: 600">Tags for uploaded files</label>
+              <input id="f-uptags" type="text" value="{{ upTags }}" onChange="{{ onUpTags }}" placeholder="Comma-separated, e.g. policy, internal" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+            </div>
+          </sc-if>
+
+          <div style="box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px 18px; border-radius: 12px; background: #F3EFE6; border: 1px solid #DAD3C3">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="font-size: 15px; line-height: 20px; font-weight: 600">Answer only from added knowledge</div>
+              <div style="font-size: 14px; line-height: 20px; color: #4A463C">When on, the agent says it doesn't know instead of guessing.</div>
+            </div>
+            <button role="switch" aria-checked="{{ strict }}" aria-label="Answer only from added knowledge" onClick="{{ toggleStrict }}" style="{{ switchStyle }}">
+              <span style="{{ knobStyle }}"><span style="{{ thumbStyle }}"></span></span>
+            </button>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Summary column -->
+      <aside aria-label="Agent summary" style="width: 380px; flex-shrink: 0; position: sticky; top: 24px; align-self: flex-start; display: flex; flex-direction: column; gap: 20px">
+        <div style="background: #1F1D18; color: #F3EFE6; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="font-family: 'Fraunces', Georgia, serif; font-size: 22px; line-height: 28px; font-weight: 600">{{ titleLabel }}</div>
+            <div style="font-size: 14px; color: #C9C1AE">{{ handleLabel }}</div>
+          </div>
+
+          <div style="height: 1px; background: #46433A"></div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #C9C1AE">Type</div>
+            <div style="font-size: 15px">{{ typeLabel }}</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #C9C1AE">Model</div>
+            <div style="font-size: 17px; font-weight: 600">{{ modelName }}</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #C9C1AE">Called by</div>
+            <div style="font-size: 15px">{{ callableLabel }}</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #C9C1AE">Hands off to</div>
+            <div style="font-size: 15px; line-height: 21px">{{ handoffLabel }}</div>
+          </div>
+
+          <div style="height: 1px; background: #46433A"></div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between">
+              <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #C9C1AE">Knowledge</div>
+              <div style="font-size: 14px; color: #C9C1AE">{{ kbCountLabel }}</div>
+            </div>
+            <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <sc-for list="{{ selectedKbs }}" as="s" hint-placeholder-count="2">
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: #2C2A24">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FD0C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path></svg>
+                    <span style="font-size: 15px">{{ s.name }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: #2C2A24">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FD0C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+              <span style="font-size: 15px">{{ uploadCountLabel }}</span>
+            </div>
+            <div style="font-size: 14px; line-height: 20px; color: #C9C1AE">{{ groundingLabel }}</div>
+          </div>
+        </div>
+
+        <div style="background: #FBF9F4; border: 1px solid #DAD3C3; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between">
+            <div style="font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 600">Required details</div>
+            <div style="font-size: 14px; font-weight: 600; color: #4A463C">{{ doneLabel }}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <sc-for list="{{ checklist }}" as="c" hint-placeholder-count="7">
+              <div style="display: flex; align-items: center; gap: 12px; min-height: 32px">
+                <span style="{{ c.iconStyle }}">
+                  <sc-if value="{{ c.done }}" hint-placeholder-val="{{ false }}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+                  </sc-if>
+                </span>
+                <span style="font-size: 15px; color: #1F1D18">{{ c.label }}</span>
+                <span style="font-size: 13px; color: #5B564B; margin-left: auto">{{ c.state }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  
+</sc-if>
+<sc-if value="{{ showWorkspace }}" hint-placeholder-val="{{ false }}">
+<div style="position: relative; display: flex; flex-direction: column; height: 100vh; min-height: 780px; min-width: 0">
+
+  <sc-if value="{{ notFull }}" hint-placeholder-val="{{ true }}">
+  <header style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px 28px; border-bottom: 1px solid #DAD3C3">
+    <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px">
+      <div style="font-size: 14px; line-height: 20px; color: #5B564B">Workspace</div>
+      <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -0.01em">Forces and Motion · Grade 7 Science</h1>
+    </div>
+    <div style="flex-shrink: 0; display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 999px; background: #E4EDEA; border: 1px solid #B9CFC8; font-size: 14px; font-weight: 600; color: #0B3F3C">{{ ctxLabel }}</div>
+  </header>
+  </sc-if>
+
+  <div style="flex-grow: 1; min-height: 0; display: flex">
+
+    <!-- Editor -->
+    <section aria-label="Document editor" style="position: relative; flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+      <sc-if value="{{ anyMenu }}" hint-placeholder-val="{{ false }}">
+        <button aria-label="Close menu" onClick="{{ closeEdMenus }}" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 8; border: none; background: transparent; cursor: default"></button>
+      </sc-if>
+
+      <!-- Menu bar -->
+      <div role="menubar" aria-label="Editor menu" style="position: relative; z-index: 10; flex-shrink: 0; display: flex; align-items: center; gap: 2px; padding: 4px 16px; border-bottom: 1px solid #E6E0D2; background: #FBF9F4">
+        <sc-for list="{{ menus }}" as="mn" hint-placeholder-count="8">
+          <div style="position: relative">
+            <button aria-haspopup="true" aria-expanded="{{ mn.open }}" onClick="{{ mn.toggle }}" style="{{ mn.style }}">{{ mn.label }}</button>
+            <sc-if value="{{ mn.open }}" hint-placeholder-val="{{ false }}">
+              <div role="menu" style="position: absolute; top: 100%; left: 0; min-width: 270px; max-height: 66vh; overflow-y: auto; background: #FFFFFF; border: 1px solid #C9C1AE; border-radius: 12px; box-shadow: 0 10px 28px rgba(31,29,24,0.18); padding: 6px; display: flex; flex-direction: column">
+                <sc-for list="{{ mn.items }}" as="it" hint-placeholder-count="6">
+                  <sc-if value="{{ it.sep }}" hint-placeholder-val="{{ false }}">
+                    <div style="height: 1px; background: #E6E0D2; margin: 4px 6px"></div>
+                  </sc-if>
+                  <sc-if value="{{ it.isItem }}" hint-placeholder-val="{{ true }}">
+                    <button role="menuitem" onClick="{{ it.run }}" style="box-sizing: border-box; width: 100%; min-height: 40px; padding: 0 12px; border: none; border-radius: 8px; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 24px; text-align: left; font-size: 14px; color: #1F1D18">
+                      <span>{{ it.label }}</span>
+                      <span style="font-size: 12px; color: #5B564B">{{ it.shortcut }}</span>
+                    </button>
+                  </sc-if>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- Toolbar (row 2) -->
+      <div role="toolbar" aria-label="Formatting" style="position: relative; z-index: 9; flex-shrink: 0; display: flex; align-items: center; flex-wrap: nowrap; gap: 2px; padding: 6px 16px; border-bottom: 1px solid #DAD3C3; background: #FBF9F4">
+        <div style="flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 2px; overflow-x: clip; overflow-y: visible">
+        <sc-for list="{{ toolbar }}" as="t" hint-placeholder-count="14">
+          <sc-if value="{{ t.sep }}" hint-placeholder-val="{{ false }}">
+            <span style="flex-shrink: 0; width: 1px; height: 24px; background: #DAD3C3; margin: 0 6px"></span>
+          </sc-if>
+          <sc-if value="{{ t.isBtn }}" hint-placeholder-val="{{ true }}">
+            <button aria-label="{{ t.aria }}" title="{{ t.aria }}" onClick="{{ t.run }}" style="flex-shrink: 0; min-width: 44px; height: 44px; padding: 0 8px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #1F1D18; cursor: pointer; display: inline-flex; align-items: center; justify-content: center">
+              <sc-if value="{{ t.hasGlyph }}" hint-placeholder-val="{{ true }}">
+                <span style="{{ t.glyphStyle }}">{{ t.glyph }}</span>
+              </sc-if>
+              <sc-if value="{{ t.hasLines }}" hint-placeholder-val="{{ false }}">
+                <span style="display: flex; flex-direction: column; gap: 3px; width: 18px">
+                  <sc-for list="{{ t.lines }}" as="ln" hint-placeholder-count="4">
+                    <span style="{{ ln.style }}"></span>
+                  </sc-for>
+                </span>
+              </sc-if>
+            </button>
+          </sc-if>
+          <sc-if value="{{ t.isSelect }}" hint-placeholder-val="{{ false }}">
+            <div style="position: relative; flex-shrink: 0">
+              <button aria-haspopup="listbox" aria-expanded="{{ t.open }}" aria-label="{{ t.aria }}" onClick="{{ t.toggle }}" style="min-height: 44px; margin: 0 2px; padding: 0 12px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; color: #1F1D18; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px">
+                {{ t.selLabel }}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+              </button>
+              <sc-if value="{{ t.open }}" hint-placeholder-val="{{ false }}">
+                <div role="listbox" style="position: absolute; top: 100%; left: 0; z-index: 12; min-width: 190px; max-height: 320px; overflow-y: auto; background: #FFFFFF; border: 1px solid #C9C1AE; border-radius: 12px; box-shadow: 0 10px 28px rgba(31,29,24,0.18); padding: 6px; display: flex; flex-direction: column">
+                  <sc-for list="{{ t.options }}" as="o" hint-placeholder-count="6">
+                    <button role="option" onClick="{{ o.pick }}" style="box-sizing: border-box; width: 100%; min-height: 40px; padding: 0 12px; border: none; border-radius: 8px; background: transparent; text-align: left; font-size: 14px; color: #1F1D18; cursor: pointer">{{ o.l }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ t.isColor }}" hint-placeholder-val="{{ false }}">
+            <div style="position: relative">
+              <button aria-label="{{ t.aria }}" title="{{ t.aria }}" aria-expanded="{{ t.open }}" onClick="{{ t.toggle }}" style="flex-shrink: 0; min-width: 44px; height: 44px; padding: 0 8px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #1F1D18; cursor: pointer; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px">
+                <span style="font-size: 16px; font-weight: 700; line-height: 18px">{{ t.glyph }}</span>
+                <span style="{{ t.barStyle }}"></span>
+              </button>
+              <sc-if value="{{ t.open }}" hint-placeholder-val="{{ false }}">
+                <div style="position: absolute; top: 100%; left: 0; z-index: 12; width: 196px; background: #FFFFFF; border: 1px solid #C9C1AE; border-radius: 12px; box-shadow: 0 10px 28px rgba(31,29,24,0.18); padding: 10px; display: flex; flex-wrap: wrap; gap: 6px">
+                  <sc-for list="{{ t.swatches }}" as="s" hint-placeholder-count="10">
+                    <button aria-label="{{ s.label }}" title="{{ s.label }}" onClick="{{ s.apply }}" style="{{ s.style }}">{{ s.glyph }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </sc-for>
+        </div>
+        <button aria-expanded="{{ tbExpanded }}" aria-controls="tb-more" onClick="{{ toggleMore }}" style="margin-left: 8px; flex-shrink: 0; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9C1AE; background: {{ moreBg }}; color: #1F1D18; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px">
+          {{ moreLabel }}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ moreChevron }}"></path></svg>
+        </button>
+      </div>
+      <sc-if value="{{ tbExpanded }}" hint-placeholder-val="{{ false }}">
+        <div id="tb-more" role="toolbar" aria-label="More formatting" style="position: relative; z-index: 9; flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 2px; padding: 6px 16px; border-bottom: 1px solid #DAD3C3; background: #F7F3EA">
+        <sc-for list="{{ toolbarMore }}" as="t" hint-placeholder-count="20">
+          <sc-if value="{{ t.sep }}" hint-placeholder-val="{{ false }}">
+            <span style="flex-shrink: 0; width: 1px; height: 24px; background: #DAD3C3; margin: 0 6px"></span>
+          </sc-if>
+          <sc-if value="{{ t.isBtn }}" hint-placeholder-val="{{ true }}">
+            <button aria-label="{{ t.aria }}" title="{{ t.aria }}" onClick="{{ t.run }}" style="flex-shrink: 0; min-width: 44px; height: 44px; padding: 0 8px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #1F1D18; cursor: pointer; display: inline-flex; align-items: center; justify-content: center">
+              <sc-if value="{{ t.hasGlyph }}" hint-placeholder-val="{{ true }}">
+                <span style="{{ t.glyphStyle }}">{{ t.glyph }}</span>
+              </sc-if>
+              <sc-if value="{{ t.hasLines }}" hint-placeholder-val="{{ false }}">
+                <span style="display: flex; flex-direction: column; gap: 3px; width: 18px">
+                  <sc-for list="{{ t.lines }}" as="ln" hint-placeholder-count="4">
+                    <span style="{{ ln.style }}"></span>
+                  </sc-for>
+                </span>
+              </sc-if>
+            </button>
+          </sc-if>
+          <sc-if value="{{ t.isSelect }}" hint-placeholder-val="{{ false }}">
+            <div style="position: relative; flex-shrink: 0">
+              <button aria-haspopup="listbox" aria-expanded="{{ t.open }}" aria-label="{{ t.aria }}" onClick="{{ t.toggle }}" style="min-height: 44px; margin: 0 2px; padding: 0 12px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; color: #1F1D18; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px">
+                {{ t.selLabel }}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+              </button>
+              <sc-if value="{{ t.open }}" hint-placeholder-val="{{ false }}">
+                <div role="listbox" style="position: absolute; top: 100%; left: 0; z-index: 12; min-width: 190px; max-height: 320px; overflow-y: auto; background: #FFFFFF; border: 1px solid #C9C1AE; border-radius: 12px; box-shadow: 0 10px 28px rgba(31,29,24,0.18); padding: 6px; display: flex; flex-direction: column">
+                  <sc-for list="{{ t.options }}" as="o" hint-placeholder-count="6">
+                    <button role="option" onClick="{{ o.pick }}" style="box-sizing: border-box; width: 100%; min-height: 40px; padding: 0 12px; border: none; border-radius: 8px; background: transparent; text-align: left; font-size: 14px; color: #1F1D18; cursor: pointer">{{ o.l }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ t.isColor }}" hint-placeholder-val="{{ false }}">
+            <div style="position: relative">
+              <button aria-label="{{ t.aria }}" title="{{ t.aria }}" aria-expanded="{{ t.open }}" onClick="{{ t.toggle }}" style="flex-shrink: 0; min-width: 44px; height: 44px; padding: 0 8px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #1F1D18; cursor: pointer; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px">
+                <span style="font-size: 16px; font-weight: 700; line-height: 18px">{{ t.glyph }}</span>
+                <span style="{{ t.barStyle }}"></span>
+              </button>
+              <sc-if value="{{ t.open }}" hint-placeholder-val="{{ false }}">
+                <div style="position: absolute; top: 100%; left: 0; z-index: 12; width: 196px; background: #FFFFFF; border: 1px solid #C9C1AE; border-radius: 12px; box-shadow: 0 10px 28px rgba(31,29,24,0.18); padding: 10px; display: flex; flex-wrap: wrap; gap: 6px">
+                  <sc-for list="{{ t.swatches }}" as="s" hint-placeholder-count="10">
+                    <button aria-label="{{ s.label }}" title="{{ s.label }}" onClick="{{ s.apply }}" style="{{ s.style }}">{{ s.glyph }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- Find and replace -->
+      <sc-if value="{{ findOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position: relative; z-index: 6; flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 16px; border-bottom: 1px solid #DAD3C3; background: #F3EFE6">
+          <label for="f-find" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Find</label>
+          <input id="f-find" type="text" value="{{ findText }}" onChange="{{ onFindText }}" placeholder="Find" style="box-sizing: border-box; width: 170px; height: 44px; padding: 0 12px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 14px; color: #1F1D18">
+          <label for="f-repl" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Replace with</label>
+          <input id="f-repl" type="text" value="{{ replText }}" onChange="{{ onReplText }}" placeholder="Replace with" style="box-sizing: border-box; width: 170px; height: 44px; padding: 0 12px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 14px; color: #1F1D18">
+          <button onClick="{{ findNext }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FFFFFF; font-size: 14px; font-weight: 600; color: #1F1D18; cursor: pointer">Find next</button>
+          <button onClick="{{ replaceOne }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FFFFFF; font-size: 14px; font-weight: 600; color: #1F1D18; cursor: pointer">Replace</button>
+          <button onClick="{{ replaceAll }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid {{accent}}; background: {{accent}}; font-size: 14px; font-weight: 600; color: #FFFFFF; cursor: pointer">Replace all</button>
+          <span style="font-size: 13px; color: #4A463C">{{ findCountLabel }}</span>
+          <button onClick="{{ closeFind }}" style="margin-left: auto; min-height: 44px; padding: 0 12px; border: none; background: none; font-size: 14px; font-weight: 600; color: {{accent}}; cursor: pointer">Close</button>
+        </div>
+      </sc-if>
+
+      <div style="flex-grow: 1; min-height: 0; overflow-y: auto; background: #EBE6DA; padding: 28px">
+        <div class="paper" style="box-sizing: border-box; max-width: 760px; margin: 0 auto; background: #FFFFFF; border: 1px solid #DAD3C3; border-radius: 12px; padding: 48px 56px; min-height: 640px">
+          <div id="doc-body" role="textbox" aria-multiline="true" aria-label="Document body" contenteditable="true"><h1>Forces and Motion</h1><h2>Learning objectives</h2><ul><li>Students will understand forces.</li><li>Students will learn about motion.</li></ul><h2>Introduction</h2><p>A force is a push or a pull that is applied to an object. When the forces acting on an object are unbalanced, the motion of the object changes. Forces are measured in newtons, which is why the net force must be calculated before the resulting acceleration can be determined.</p><h2>Activity: Ramp investigation</h2><p>Students roll a toy car down a ramp at three different heights and the distance traveled is recorded. Results are then compared in a table and conclusions are drawn by the groups.</p><h2>Exit ticket</h2><p>Explain, in two or three sentences, why a heavier cart needs a larger force to reach the same acceleration.</p></div>
+        </div>
+      </div>
+
+      <!-- Status bar -->
+      <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 16px; border-top: 1px solid #DAD3C3; background: #FBF9F4; font-size: 13px; line-height: 20px; color: #4A463C">
+        <span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ docPath }}</span>
+        <span style="font-weight: 600; color: #0B3F3C">{{ docNote }}</span>
+        <span style="flex-shrink: 0">{{ docStats }}</span>
+      </div>
+    </section>
+
+    <sc-if value="{{ notFull }}" hint-placeholder-val="{{ true }}">
+    <!-- AI panel -->
+    <aside aria-label="AI assistant" style="width: clamp(340px, 31vw, 440px); flex: 0 0 auto; display: flex; flex-direction: column; border-left: 1px solid #DAD3C3; background: #FBF9F4; min-height: 0">
+      <div style="flex-shrink: 0; padding: 16px 16px 12px 16px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #DAD3C3">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div style="width: 28px; height: 28px; border-radius: 8px; background: {{accent}}; display: flex; align-items: center; justify-content: center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path></svg>
+          </div>
+          <div style="font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 600">Assistant</div>
+        </div>
+        <div role="group" aria-label="Assistant mode" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 4px; border-radius: 12px; background: #EFEADD">
+          <sc-for list="{{ wsTabs }}" as="w" hint-placeholder-count="3">
+            <button aria-pressed="{{ w.active }}" onClick="{{ w.pick }}" style="{{ w.style }}">{{ w.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <sc-if value="{{ showChat }}" hint-placeholder-val="{{ true }}">
+        <div style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column">
+          <div id="chat-scroll" style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+
+            <sc-if value="{{ noThread }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <div style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 600">Example commands</div>
+                <div style="font-size: 14px; line-height: 20px; color: #4A463C">Pick one to load it into the message box with its agent and knowledge, then send. You can also type @ to call an agent or # to attach knowledge.</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <sc-for list="{{ examples }}" as="x" hint-placeholder-count="7">
+                  <button onClick="{{ x.pick }}" style="box-sizing: border-box; width: 100%; min-height: 44px; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid #DAD3C3; background: #FFFFFF; cursor: pointer; display: flex; flex-direction: column; gap: 4px">
+                    <span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #1F1D18">{{ x.text }}</span>
+                    <span style="font-size: 12px; line-height: 16px; color: #0E5A57; font-weight: 600">{{ x.meta }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ hasThread }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; justify-content: space-between">
+                <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #5B564B; font-weight: 600">Conversation</div>
+                <button onClick="{{ newChat }}" style="min-height: 44px; padding: 0 12px; border: none; background: none; color: {{accent}}; font-size: 14px; font-weight: 600; cursor: pointer">New chat</button>
+              </div>
+            </sc-if>
+
+            <sc-for list="{{ thread }}" as="m" hint-placeholder-count="2">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ false }}">
+                  <div style="align-self: flex-end; max-width: 88%; display: flex; flex-direction: column; gap: 6px; align-items: flex-end">
+                    <div style="padding: 10px 14px; border-radius: 14px 14px 4px 14px; background: #1F1D18; color: #F3EFE6; font-size: 14px; line-height: 20px">{{ m.text }}</div>
+                    <div style="font-size: 12px; line-height: 16px; color: #5B564B; text-align: right">{{ m.ctx }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ m.isAssistant }}" hint-placeholder-val="{{ false }}">
+                  <div style="border: 1px solid #DAD3C3; border-radius: 14px 14px 14px 4px; background: #FFFFFF; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                      <div style="display: flex; align-items: center; gap: 8px; min-width: 0">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0E5A57" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3"></rect><path d="M12 8V4M9 14h.01M15 14h.01"></path></svg>
+                        <span style="font-size: 14px; line-height: 20px; font-weight: 600">{{ m.agent }}</span>
+                      </div>
+                      <span style="font-size: 12px; line-height: 16px; color: #5B564B">{{ m.routeLabel }}</span>
+                    </div>
+                    <div style="font-size: 12px; line-height: 16px; color: #5B564B">{{ m.meta }}</div>
+                    <div style="display: flex; flex-direction: column; gap: 6px">
+                      <sc-for list="{{ m.blocks }}" as="b" hint-placeholder-count="4">
+                        <sc-if value="{{ b.isH }}" hint-placeholder-val="{{ false }}">
+                          <div style="margin-top: 4px; font-family: 'Fraunces', Georgia, serif; font-size: 16px; line-height: 22px; font-weight: 600">{{ b.text }}</div>
+                        </sc-if>
+                        <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ false }}">
+                          <div style="font-size: 14px; line-height: 21px; color: #1F1D18">{{ b.text }}</div>
+                        </sc-if>
+                        <sc-if value="{{ b.isLi }}" hint-placeholder-val="{{ true }}">
+                          <div style="display: flex; gap: 10px; font-size: 14px; line-height: 21px; color: #1F1D18">
+                            <span style="width: 6px; height: 6px; margin-top: 8px; flex-shrink: 0; border-radius: 50%; background: #0E5A57"></span>
+                            <span>{{ b.text }}</span>
+                          </div>
+                        </sc-if>
+                      </sc-for>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px">
+                      <button onClick="{{ m.insertBelow }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid {{accent}}; background: {{accent}}; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer">Insert below</button>
+                      <button onClick="{{ m.replace }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FFFFFF; color: #1F1D18; font-size: 14px; font-weight: 600; cursor: pointer">{{ replaceLabel }}</button>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}">
+              <div style="align-self: flex-start; padding: 10px 14px; border-radius: 14px; border: 1px solid #DAD3C3; background: #FFFFFF; font-size: 14px; color: #4A463C">Working on it…</div>
+            </sc-if>
+          </div>
+
+          <!-- Composer -->
+          <div style="position: relative; flex-shrink: 0; border-top: 1px solid #DAD3C3; background: #FBF9F4; padding: 12px 16px 16px 16px; display: flex; flex-direction: column; gap: 10px">
+
+            <sc-if value="{{ menuAgent }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; left: 12px; right: 12px; bottom: 100%; z-index: 5; max-height: 340px; overflow-y: auto; border: 1px solid #C9C1AE; border-radius: 14px; background: #FFFFFF; box-shadow: 0 8px 24px rgba(31,29,24,0.16); padding: 8px; display: flex; flex-direction: column; gap: 2px">
+                <div style="padding: 8px 10px; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #5B564B; font-weight: 600">Call an agent</div>
+                <sc-for list="{{ agentOptions }}" as="a" hint-placeholder-count="5">
+                  <button aria-pressed="{{ a.selected }}" onClick="{{ a.pick }}" style="{{ a.style }}">
+                    <span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #1F1D18">{{ a.name }}</span>
+                    <span style="font-size: 12px; line-height: 16px; color: #4A463C">{{ a.desc }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ menuSource }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; left: 12px; right: 12px; bottom: 100%; z-index: 5; max-height: 420px; overflow-y: auto; border: 1px solid #C9C1AE; border-radius: 14px; background: #FFFFFF; box-shadow: 0 8px 24px rgba(31,29,24,0.16); padding: 8px; display: flex; flex-direction: column; gap: 4px">
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 4px 0 10px">
+                  <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #5B564B; font-weight: 600">Attach knowledge</div>
+                  <button onClick="{{ closeMenu }}" style="min-height: 44px; padding: 0 12px; border: none; background: none; color: {{accent}}; font-size: 14px; font-weight: 600; cursor: pointer">Done</button>
+                </div>
+                <sc-for list="{{ sourceGroups }}" as="g" hint-placeholder-count="3">
+                  <div style="display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-top: 1px solid #E6E0D2">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 10px">
+                      <span style="font-family: 'Fraunces', Georgia, serif; font-size: 15px; font-weight: 600">{{ g.kb }}</span>
+                      <span style="font-size: 12px; color: #4A463C">{{ g.tags }}</span>
+                    </div>
+                    <button aria-pressed="{{ g.whole.selected }}" onClick="{{ g.whole.toggle }}" style="{{ g.whole.style }}">
+                      <span style="{{ g.whole.boxStyle }}">
+                        <sc-if value="{{ g.whole.selected }}" hint-placeholder-val="{{ false }}">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+                        </sc-if>
+                      </span>
+                      <span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #1F1D18">Entire knowledge base</span>
+                    </button>
+                    <sc-for list="{{ g.files }}" as="f" hint-placeholder-count="2">
+                      <button aria-pressed="{{ f.selected }}" onClick="{{ f.toggle }}" style="{{ f.style }}">
+                        <span style="{{ f.boxStyle }}">
+                          <sc-if value="{{ f.selected }}" hint-placeholder-val="{{ false }}">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+                          </sc-if>
+                        </span>
+                        <span style="font-size: 14px; line-height: 20px; color: #1F1D18">{{ f.name }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </sc-for>
+                <label class="dz" style="position: relative; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px; margin-top: 4px; border-top: 1px solid #E6E0D2; cursor: pointer; font-size: 14px; font-weight: 600; color: {{accent}}">
+                  <input type="file" multiple="" accept=".pdf,.docx,.txt,.md,.csv,.pptx,.xlsx" onChange="{{ onAttachFiles }}" style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+                  Upload a file instead
+                </label>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ hasChips }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                <sc-if value="{{ hasWsAgent }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px 0 12px; border-radius: 999px; background: {{accent}}; color: #FFFFFF; font-size: 13px; font-weight: 600">
+                    @ {{ wsAgentLabel }}
+                    <button aria-label="Remove agent" onClick="{{ clearAgent }}" style="width: 28px; height: 28px; border: none; background: transparent; color: #FFFFFF; font-size: 16px; line-height: 16px; cursor: pointer">×</button>
+                  </span>
+                </sc-if>
+                <sc-for list="{{ sourceChips }}" as="s" hint-placeholder-count="2">
+                  <span style="display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px 0 12px; border-radius: 999px; background: #E4EDEA; border: 1px solid #B9CFC8; color: #0B3F3C; font-size: 13px; font-weight: 600">
+                    # {{ s.name }}
+                    <button aria-label="{{ s.removeLabel }}" onClick="{{ s.remove }}" style="width: 28px; height: 28px; border: none; background: transparent; color: #0B3F3C; font-size: 16px; line-height: 16px; cursor: pointer">×</button>
+                  </span>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <label for="ws-comp" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Message to the assistant</label>
+            <textarea id="ws-comp" value="{{ comp }}" onChange="{{ onComp }}" onKeyDown="{{ onCompKey }}" placeholder="Ask about this document. Type @ for an agent, # for knowledge." style="box-sizing: border-box; height: 84px; padding: 10px 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 15px; line-height: 22px; color: #1F1D18; resize: none"></textarea>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <button aria-expanded="{{ menuAgent }}" onClick="{{ toggleAgentMenu }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FFFFFF; color: #1F1D18; font-size: 14px; font-weight: 600; cursor: pointer">@ Agent</button>
+              <button aria-expanded="{{ menuSource }}" onClick="{{ toggleSourceMenu }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FFFFFF; color: #1F1D18; font-size: 14px; font-weight: 600; cursor: pointer"># Knowledge</button>
+              <button onClick="{{ send }}" style="margin-left: auto; min-height: 44px; padding: 0 20px; border-radius: 10px; border: 1px solid {{accent}}; background: {{accent}}; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer">Send</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Quick actions -->
+      <sc-if value="{{ showActions }}" hint-placeholder-val="{{ false }}">
+        <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+          <div style="font-size: 14px; line-height: 20px; color: #4A463C">Runs on your selection, or on the whole document when nothing is selected. Actions marked with an agent call that agent.</div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{ quickActions }}" as="q" hint-placeholder-count="10">
+              <button aria-disabled="{{ q.disabled }}" onClick="{{ q.run }}" style="{{ q.style }}">
+                <span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #1F1D18">{{ q.label }}</span>
+                <span style="font-size: 12px; line-height: 16px; color: #4A463C">{{ q.desc }}</span>
+                <span style="{{ q.tagStyle }}">{{ q.tag }}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ hasResult }}" hint-placeholder-val="{{ false }}">
+            <div style="border: 1px solid #C9C1AE; border-radius: 14px; background: #FFFFFF; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+              <sc-if value="{{ resultBusy }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size: 14px; color: #4A463C">Working on it…</div>
+              </sc-if>
+              <sc-if value="{{ resultReady }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+                  <div style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; font-weight: 600">{{ resultTitle }}</div>
+                  <div style="font-size: 12px; color: #5B564B">{{ resultAgent }}</div>
+                </div>
+                <div style="font-size: 12px; line-height: 16px; color: #5B564B">{{ resultMeta }}</div>
+                <div style="display: flex; flex-direction: column; gap: 6px">
+                  <sc-for list="{{ resultBlocks }}" as="b" hint-placeholder-count="4">
+                    <sc-if value="{{ b.isH }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top: 4px; font-family: 'Fraunces', Georgia, serif; font-size: 16px; line-height: 22px; font-weight: 600">{{ b.text }}</div>
+                    </sc-if>
+                    <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-size: 14px; line-height: 21px; color: #1F1D18">{{ b.text }}</div>
+                    </sc-if>
+                    <sc-if value="{{ b.isLi }}" hint-placeholder-val="{{ true }}">
+                      <div style="display: flex; gap: 10px; font-size: 14px; line-height: 21px; color: #1F1D18">
+                        <span style="width: 6px; height: 6px; margin-top: 8px; flex-shrink: 0; border-radius: 50%; background: #0E5A57"></span>
+                        <span>{{ b.text }}</span>
+                      </div>
+                    </sc-if>
+                  </sc-for>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px">
+                  <button onClick="{{ resultReplace }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid {{accent}}; background: {{accent}}; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer">{{ replaceLabel }}</button>
+                  <button onClick="{{ resultBelow }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FFFFFF; color: #1F1D18; font-size: 14px; font-weight: 600; cursor: pointer">Insert below</button>
+                  <button onClick="{{ resultDiscard }}" style="min-height: 44px; padding: 0 14px; border: none; background: none; color: #4A463C; font-size: 14px; font-weight: 600; cursor: pointer">Discard</button>
+                </div>
+                <div style="font-size: 12px; line-height: 16px; color: #5B564B">Sample output for this preview.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- Review -->
+      <sc-if value="{{ showReview }}" hint-placeholder-val="{{ false }}">
+        <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+          <div style="font-size: 14px; line-height: 20px; color: #4A463C">Checks the document for standards alignment, clarity, reading level and accessibility. Apply a suggestion to change the text in place.</div>
+          <button onClick="{{ runReview }}" style="align-self: flex-start; min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid {{accent}}; background: {{accent}}; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer">{{ reviewButtonLabel }}</button>
+          <sc-if value="{{ reviewRan }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size: 14px; font-weight: 600; color: #1F1D18">{{ reviewSummary }}</div>
+          </sc-if>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{ findings }}" as="f" hint-placeholder-count="4">
+              <div style="border: 1px solid #DAD3C3; border-radius: 14px; background: #FFFFFF; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                  <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #EFEADD; border: 1px solid #DAD3C3; font-size: 12px; font-weight: 600; color: #3D392F">{{ f.cat }}</span>
+                  <span style="font-size: 12px; font-weight: 600; color: #4A463C">{{ f.statusLabel }}</span>
+                </div>
+                <div style="font-size: 14px; line-height: 20px; font-weight: 600">{{ f.title }}</div>
+                <sc-if value="{{ f.hasChange }}" hint-placeholder-val="{{ true }}">
+                  <div style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 19px">
+                    <div style="color: #6B3A0B"><span style="font-weight: 600">Now:</span> {{ f.before }}</div>
+                    <div style="color: #0B4A2E"><span style="font-weight: 600">Suggest:</span> {{ f.after }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ f.isOpen }}" hint-placeholder-val="{{ true }}">
+                  <div style="display: flex; gap: 8px">
+                    <sc-if value="{{ f.hasChange }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ f.apply }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid {{accent}}; background: {{accent}}; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer">Apply</button>
+                    </sc-if>
+                    <button onClick="{{ f.dismiss }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FFFFFF; color: #1F1D18; font-size: 14px; font-weight: 600; cursor: pointer">Dismiss</button>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+    </aside>
+    </sc-if>
+  </div>
+
+  <!-- Dialogs -->
+  <sc-if value="{{ hasDialog }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(31,29,24,0.45)">
+      <div role="dialog" aria-modal="true" aria-label="{{ dialogTitle }}" style="{{ dialogStyle }}">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+          <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600">{{ dialogTitle }}</h2>
+          <button aria-label="Close dialog" onClick="{{ closeDialog }}" style="width: 44px; height: 44px; border: none; border-radius: 10px; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3D392F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </button>
+        </div>
+
+        <sc-if value="{{ dLink }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="d-link-url" style="font-size: 14px; line-height: 20px; font-weight: 600">URL</label>
+              <input id="d-link-url" type="text" value="{{ linkUrl }}" onChange="{{ onLinkUrl }}" placeholder="https://" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="d-link-text" style="font-size: 14px; line-height: 20px; font-weight: 600">Text to display</label>
+              <input id="d-link-text" type="text" value="{{ linkText }}" onChange="{{ onLinkText }}" placeholder="Leave empty to use the selected text or the URL" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+            </div>
+            <button role="checkbox" aria-checked="{{ linkNew }}" onClick="{{ toggleLinkNew }}" style="min-height: 44px; display: flex; align-items: center; gap: 10px; border: none; background: none; cursor: pointer; text-align: left; font-size: 15px; color: #1F1D18; padding: 0">
+              <span style="{{ linkNewBox }}">
+                <sc-if value="{{ linkNew }}" hint-placeholder-val="{{ false }}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+                </sc-if>
+              </span>
+              Open in a new tab
+            </button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ dImage }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="d-img-url" style="font-size: 14px; line-height: 20px; font-weight: 600">Image URL</label>
+              <input id="d-img-url" type="text" value="{{ imgUrlShown }}" onChange="{{ onImgUrl }}" placeholder="https://" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+            </div>
+            <label class="dz" style="position: relative; display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; box-sizing: border-box; border-radius: 10px; border: 1px solid {{accent}}; background: #FFFFFF; color: {{accent}}; font-size: 14px; font-weight: 600; cursor: pointer">
+              <input type="file" accept="image/*" onChange="{{ onImgFile }}" style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden">
+              Upload from your computer
+            </label>
+            <div style="font-size: 14px; color: #4A463C">{{ imgNameLabel }}</div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="d-img-alt" style="font-size: 14px; line-height: 20px; font-weight: 600">Alternative text</label>
+              <input id="d-img-alt" type="text" value="{{ imgAlt }}" onChange="{{ onImgAlt }}" placeholder="Describe the image for screen reader users" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+            </div>
+            <button role="checkbox" aria-checked="{{ imgDecor }}" onClick="{{ toggleImgDecor }}" style="min-height: 44px; display: flex; align-items: center; gap: 10px; border: none; background: none; cursor: pointer; text-align: left; font-size: 15px; color: #1F1D18; padding: 0">
+              <span style="{{ imgDecorBox }}">
+                <sc-if value="{{ imgDecor }}" hint-placeholder-val="{{ false }}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+                </sc-if>
+              </span>
+              Decorative image, no description needed
+            </button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ dTable }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <label for="d-rows" style="font-size: 14px; line-height: 20px; font-weight: 600">Rows</label>
+                <input id="d-rows" type="number" value="{{ tRows }}" onChange="{{ onTRows }}" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <label for="d-cols" style="font-size: 14px; line-height: 20px; font-weight: 600">Columns</label>
+                <input id="d-cols" type="number" value="{{ tCols }}" onChange="{{ onTCols }}" style="box-sizing: border-box; height: 48px; padding: 0 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-size: 16px; color: #1F1D18">
+              </div>
+            </div>
+            <button role="checkbox" aria-checked="{{ tHdr }}" onClick="{{ toggleTHdr }}" style="min-height: 44px; display: flex; align-items: center; gap: 10px; border: none; background: none; cursor: pointer; text-align: left; font-size: 15px; color: #1F1D18; padding: 0">
+              <span style="{{ tHdrBox }}">
+                <sc-if value="{{ tHdr }}" hint-placeholder-val="{{ true }}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+                </sc-if>
+              </span>
+              First row is a header
+            </button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ dSource }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="d-src" style="font-size: 14px; line-height: 20px; font-weight: 600">HTML</label>
+            <textarea id="d-src" value="{{ srcText }}" onChange="{{ onSrcText }}" style="box-sizing: border-box; height: 360px; padding: 12px 14px; border: 1px solid #C9C1AE; border-radius: 10px; background: #FFFFFF; font-family: Consolas, Menlo, monospace; font-size: 13px; line-height: 20px; color: #1F1D18; resize: none"></textarea>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ dPreview }}" hint-placeholder-val="{{ false }}">
+          <div style="max-height: 420px; overflow-y: auto; border: 1px solid #DAD3C3; border-radius: 10px; background: #FFFFFF; padding: 28px 32px">
+            <div id="preview-body"></div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ dChars }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px">
+            <sc-for list="{{ specialChars }}" as="c" hint-placeholder-count="48">
+              <button aria-label="{{ c.label }}" title="{{ c.label }}" onClick="{{ c.pick }}" style="height: 44px; border: 1px solid #DAD3C3; border-radius: 8px; background: #FFFFFF; font-size: 18px; color: #1F1D18; cursor: pointer">{{ c.ch }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ dEmoji }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px">
+            <sc-for list="{{ emojis }}" as="c" hint-placeholder-count="32">
+              <button aria-label="{{ c.label }}" title="{{ c.label }}" onClick="{{ c.pick }}" style="height: 44px; border: 1px solid #DAD3C3; border-radius: 8px; background: #FFFFFF; font-size: 20px; cursor: pointer">{{ c.ch }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ dCount }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column">
+            <sc-for list="{{ countRows }}" as="r" hint-placeholder-count="5">
+              <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #E6E0D2; font-size: 15px">
+                <span style="color: #4A463C">{{ r.label }}</span>
+                <span style="font-weight: 600">{{ r.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ dHelp }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column">
+            <sc-for list="{{ helpRows }}" as="r" hint-placeholder-count="7">
+              <div style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid #E6E0D2; font-size: 15px">
+                <span style="color: #1F1D18">{{ r.label }}</span>
+                <span style="font-weight: 600; color: #4A463C">{{ r.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="font-size: 14px; line-height: 20px; font-weight: 600; color: #9B2C1F">{{ dialogErr }}</div>
+        </sc-if>
+        <div style="display: flex; justify-content: flex-end; gap: 8px">
+          <button onClick="{{ closeDialog }}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #C9C1AE; background: #FFFFFF; color: #1F1D18; font-size: 14px; font-weight: 600; cursor: pointer">{{ closeLabel }}</button>
+          <sc-if value="{{ hasPrimary }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ primaryRun }}" style="min-height: 44px; padding: 0 20px; border-radius: 10px; border: 1px solid {{accent}}; background: {{accent}}; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer">{{ primaryLabel }}</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0E5A57","options":["#0E5A57","#7A3B12","#3B3A8C","#8A1F3D"]},"$preview":{"width":1440,"height":1000}}'>
+const WS_FILES = {
+  'Academic Standards': ['NGSS Middle School Physical Science.pdf', 'CCSS Math Grades 6-8.pdf'],
+  'Skills Taxonomies': ['Science Practices Skills Map.xlsx'],
+  'Curriculum Library': ['Grade 7 Science Scope and Sequence.docx'],
+  'Learning Content': ['Unit 3 Forces and Motion.docx', 'Ramp Investigation Slides.pptx'],
+  'Industry Credentials': ['Certification Exam Objectives.pdf'],
+  'Style and Accessibility Guides': ['Editorial Style Guide.pdf', 'Accessibility Checklist.pdf']
+};
+
+const WS_QA = [
+  { id: 'improve', label: 'Improve writing', desc: 'Clearer, tighter wording', type: null },
+  { id: 'simplify', label: 'Simplify language', desc: 'Lower the reading level', type: null },
+  { id: 'shorten', label: 'Shorten', desc: 'Keep only the key points', type: null },
+  { id: 'expand', label: 'Expand', desc: 'Add detail and examples', type: null },
+  { id: 'translate', label: 'Translate to Spanish', desc: 'Keep terms and structure', type: null },
+  { id: 'align', label: 'Align to standards', desc: 'Match content to standards', type: 'Standard alignment' },
+  { id: 'tag', label: 'Tag content', desc: 'Topics, standards, skills', type: 'Content tagging' },
+  { id: 'skills', label: 'Extract skills', desc: 'List the skills practiced', type: 'Skill extraction' },
+  { id: 'quiz', label: 'Write practice questions', desc: 'Draft questions to review', type: 'Content creation' },
+  { id: 'micro', label: 'Draft a micro-course', desc: 'Modules from this content', type: 'Micro-course creation' }
+];
+
+const WS_EXAMPLES = [
+  { text: 'Align this lesson to NGSS middle school standards', type: 'Standard alignment', sources: [{ id: 'Academic Standards::NGSS Middle School Physical Science.pdf', name: 'NGSS Middle School Physical Science.pdf', kind: 'file' }] },
+  { text: 'Tag this lesson with topics, standards and skills', type: 'Content tagging', sources: [{ id: 'Skills Taxonomies::*', name: 'Skills Taxonomies', kind: 'kb' }] },
+  { text: 'Extract the skills students practice in this activity', type: 'Skill extraction', sources: [] },
+  { text: 'Find skill gaps against the Science Practices Skills Map', type: 'Skill gap analysis', sources: [{ id: 'Skills Taxonomies::Science Practices Skills Map.xlsx', name: 'Science Practices Skills Map.xlsx', kind: 'file' }] },
+  { text: 'Write three practice questions for the exit ticket', type: 'Content creation', sources: [{ id: 'Style and Accessibility Guides::Editorial Style Guide.pdf', name: 'Editorial Style Guide.pdf', kind: 'file' }] },
+  { text: 'Draft a four-week unit outline from this lesson', type: 'Curriculum creation', sources: [{ id: 'Curriculum Library::Grade 7 Science Scope and Sequence.docx', name: 'Grade 7 Science Scope and Sequence.docx', kind: 'file' }] },
+  { text: 'Turn this lesson into a 30-minute micro-course', type: 'Micro-course creation', sources: [] }
+];
+
+const WS_REVIEW = [
+  { id: 'r1', cat: 'Standards', title: 'Objective is not measurable. Tie it to MS-PS2-2.', before: 'Students will understand forces.', after: "Students will calculate net force and predict how it changes an object's motion (MS-PS2-2)." },
+  { id: 'r2', cat: 'Standards', title: 'Objective names no observable action.', before: 'Students will learn about motion.', after: 'Students will compare balanced and unbalanced forces using data from an investigation.' },
+  { id: 'r3', cat: 'Clarity', title: 'Mixed active and passive voice in the activity steps.', before: 'and the distance traveled is recorded', after: 'and record the distance traveled' },
+  { id: 'r4', cat: 'Clarity', title: 'Passive sentence hides who does the work.', before: 'Results are then compared in a table and conclusions are drawn by the groups.', after: 'Groups then compare results in a table and draw conclusions.' },
+  { id: 'r5', cat: 'Reading level', title: 'Long sentence. Separate the reason from the steps.', before: 'which is why the net force must be calculated before the resulting acceleration can be determined', after: 'so students must calculate the net force before they can find the acceleration' },
+  { id: 'r6', cat: 'Accessibility', title: 'No images yet. When you add the ramp diagram, include alt text and a short text description.', before: '', after: '' }
+];
+
+function WS_OUT(key) {
+  const H = (t) => ({ k: 'h', t });
+  const P = (t) => ({ k: 'p', t });
+  const L = (t) => ({ k: 'li', t });
+  switch (key) {
+    case 'Standard alignment':
+    case 'align':
+      return { blocks: [
+        H('Aligned standards'),
+        L('MS-PS2-2 · Net force, mass and change in motion. Matches the ramp investigation and the exit ticket.'),
+        L('MS-PS2-1 · Interacting objects and force pairs. Partial match: add a push-and-pull or collision example.'),
+        H('Gaps'),
+        P('The learning objectives are not measurable. Rewrite them with action verbs tied to MS-PS2-2.')
+      ] };
+    case 'Content tagging':
+    case 'tag':
+      return { blocks: [
+        H('Suggested tags'),
+        L('Topics: forces, net force, acceleration'),
+        L('Standards: MS-PS2-2 (primary), MS-PS2-1 (secondary)'),
+        L('Skills: planning investigations, analyzing data'),
+        L('Level: Grade 7 · Physical Science'),
+        L('Format: lesson with activity and exit ticket')
+      ] };
+    case 'Skill extraction':
+    case 'skills':
+      return { blocks: [
+        H('Skills found'),
+        L('Planning and carrying out investigations'),
+        L('Collecting and organizing data in tables'),
+        L('Drawing evidence-based conclusions'),
+        L('Explaining cause and effect with forces')
+      ] };
+    case 'Skill gap analysis':
+      return { blocks: [
+        H('Coverage against target skills'),
+        L('Covered: investigating, recording data, drawing conclusions'),
+        L('Partly covered: explaining cause and effect (exit ticket only)'),
+        L('Missing: graphing data; using a mathematical model of force and mass'),
+        P('Add a graphing step to the ramp activity to close the main gap.')
+      ] };
+    case 'Content creation':
+    case 'quiz':
+      return { blocks: [
+        H('Draft practice questions'),
+        L('1. A cart has a mass of 2 kg and accelerates at 3 m/s². What net force acts on it?'),
+        L('2. Two students push a box from opposite sides with equal force. Describe the motion of the box and explain why.'),
+        L('3. Predict how doubling the mass changes the acceleration if the force stays the same.')
+      ] };
+    case 'Curriculum creation':
+      return { blocks: [
+        H('Unit outline: Forces and Motion'),
+        L('Week 1 · Forces as pushes and pulls; measuring in newtons'),
+        L('Week 2 · Balanced and unbalanced forces'),
+        L('Week 3 · Net force, mass and acceleration (ramp investigation)'),
+        L('Week 4 · Force pairs and the unit assessment')
+      ] };
+    case 'Micro-course creation':
+    case 'micro':
+      return { blocks: [
+        H('Micro-course: Net force in 30 minutes'),
+        L('Module 1 · What is a force? Short video and a check question'),
+        L('Module 2 · Balanced or unbalanced? Interactive sort'),
+        L('Module 3 · Net force calculations with worked examples'),
+        L('Module 4 · Quick investigation and a final quiz')
+      ] };
+    case 'simplify':
+      return { blocks: [P('A force is a push or a pull. When the pushes and pulls on an object are not equal, the object moves differently. We measure forces in newtons.')] };
+    case 'shorten':
+      return { blocks: [P('Unbalanced forces change an object\u2019s motion. The net force, measured in newtons, sets the acceleration.')] };
+    case 'expand':
+      return { blocks: [P('A force is a push or a pull applied to an object. When the forces on an object are unbalanced, the object speeds up, slows down or changes direction. For example, a cart pushed from one side accelerates, while a cart pushed equally from both sides stays still. Forces are measured in newtons, so students calculate the net force first and then find the acceleration.')] };
+    case 'translate':
+      return { blocks: [P('Una fuerza es un empuje o una tracción que se aplica a un objeto. Cuando las fuerzas que actúan sobre un objeto no están equilibradas, cambia el movimiento del objeto.')] };
+    default:
+      return { blocks: [P('Forces change how objects move. When the forces on an object are unbalanced, the object speeds up, slows down or changes direction. Students calculate the net force first, then use it to find the acceleration.')] };
+  }
+}
+
+function BLANK() {
+  return {
+      name: '', handle: '',
+      instr: '', when: '', inSpec: '', outSpec: '',
+      timeout: '', callable: 'any', hand: {},
+      agentType: '', model: 'sonnet', kbSel: {}, tag: 'all', strict: true, kbOpen: false,
+      uploads: [], upTags: ''
+    };
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = Object.assign({
+      view: 'list', query: '', status: 'All',
+      wsTab: 'chat', thread: [], comp: '', wsAgent: null, wsSources: [], menu: null, busy: false, result: null, findings: [], reviewRan: false, reviewBusy: false, selWords: 0,
+      dialog: null, dialogErr: '', linkUrl: '', linkText: '', linkNew: true, imgUrl: '', imgAlt: '', imgDecor: false, imgName: '', tRows: '3', tCols: '3', tHdr: true, srcText: '', findOpen: false, findText: '', replText: '', findCount: 0, full: false, blocksOn: false, docWords: 0, docChars: 0, docNoSp: 0, docBlocks: 0, docPath: '', note: '', menuOpen: null, pop: null, tbExpanded: false, sbHidden: false,
+      agents: [
+        { name: 'Standards Aligner', type: 'Standard alignment', desc: 'Maps lessons and assessments to academic standards.', model: 'Claude Opus 5.5', kbs: ['Academic Standards', 'Curriculum Library'], status: 'Active', updated: 'Sep 27' },
+        { name: 'Content Tagger', type: 'Content tagging', desc: 'Tags learning content with topics, standards and skills.', model: 'Claude Haiku 4.5', kbs: ['Learning Content', 'Skills Taxonomies'], status: 'Active', updated: 'Sep 25' },
+        { name: 'Skill Extractor', type: 'Skill extraction', desc: 'Pulls skills from course outcomes and job descriptions.', model: 'Claude Sonnet 5.5', kbs: ['Skills Taxonomies'], status: 'Active', updated: 'Sep 22' },
+        { name: 'Skill Gap Analyzer', type: 'Skill gap analysis', desc: 'Compares program skills against target roles.', model: 'Claude Opus 5.5', kbs: ['Skills Taxonomies', 'Industry Credentials'], status: 'Draft', updated: 'Sep 20' },
+        { name: 'Content Creator', type: 'Content creation', desc: 'Drafts lessons, activities and assessments.', model: 'Claude Sonnet 5.5', kbs: ['Learning Content', 'Style and Accessibility Guides'], status: 'Active', updated: 'Sep 18' },
+        { name: 'Curriculum Designer', type: 'Curriculum creation', desc: 'Builds scope and sequence from outcomes and standards.', model: 'Claude Opus 5.5', kbs: ['Academic Standards', 'Curriculum Library'], status: 'Active', updated: 'Sep 12' },
+        { name: 'Micro-course Builder', type: 'Micro-course creation', desc: 'Turns source material into short, focused courses.', model: 'Claude Sonnet 5.5', kbs: ['Learning Content'], status: 'Paused', updated: 'Sep 9' }
+      ]
+    }, BLANK());
+    this.savedRange = null;
+    this.docHtml = '';
+    this.findIdx = -1;
+  }
+
+  goTo(view) {
+    if (this.state.view === 'workspace') {
+      const el = this.docEl();
+      if (el) this.docHtml = el.innerHTML;
+      this.savedRange = null;
+    }
+    this.setState({ view, menu: null, selWords: 0 });
+    if (view === 'workspace') this.mountDoc();
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+
+  // ---------- Workspace ----------
+  docEl() { return document.getElementById('doc-body'); }
+
+  notify(msg) {
+    this.setState({ note: msg });
+    setTimeout(() => { if (this.state.note === msg) this.setState({ note: '' }); }, 2600);
+  }
+
+  mountDoc() {
+    setTimeout(() => {
+      const el = this.docEl();
+      if (!el) return;
+      el.setAttribute('contenteditable', 'true');
+      if (this.docHtml) el.innerHTML = this.docHtml;
+      if (this.state.blocksOn) el.classList.add('showblocks');
+      el.addEventListener('mouseup', () => this.saveSel());
+      el.addEventListener('keyup', () => this.saveSel());
+      el.addEventListener('input', () => this.updateCounts());
+      this.updateCounts();
+    }, 60);
+  }
+
+  updateCounts() {
+    const el = this.docEl();
+    if (!el) return;
+    const text = (el.innerText || '').trim();
+    const words = text === '' ? 0 : text.split(/\s+/).length;
+    const chars = text.length;
+    const noSp = text.replace(/\s/g, '').length;
+    const blocks = el.querySelectorAll('p,li,h1,h2,h3,h4,blockquote,pre,td,th').length;
+    const s = this.state;
+    if (s.docWords !== words || s.docChars !== chars || s.docNoSp !== noSp || s.docBlocks !== blocks) {
+      this.setState({ docWords: words, docChars: chars, docNoSp: noSp, docBlocks: blocks });
+    }
+  }
+
+  saveSel() {
+    const el = this.docEl();
+    if (!el) return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const r = sel.getRangeAt(0);
+    if (!el.contains(r.commonAncestorContainer)) return;
+    this.savedRange = r.cloneRange();
+    const txt = r.toString().trim();
+    const words = txt === '' ? 0 : txt.split(/\s+/).length;
+    let n = r.startContainer;
+    const names = [];
+    while (n && n !== el) {
+      if (n.nodeType === 1) names.unshift(n.tagName.toLowerCase());
+      n = n.parentNode;
+    }
+    const path = names.join(' \u203A ');
+    const patch = {};
+    if (words !== this.state.selWords) patch.selWords = words;
+    if (path !== this.state.docPath) patch.docPath = path;
+    if (Object.keys(patch).length) this.setState(patch);
+  }
+
+  insertAtCursor(html) {
+    const el = this.docEl();
+    if (!el) return;
+    this.restoreSel();
+    try { document.execCommand('insertHTML', false, html); } catch (e) { el.insertAdjacentHTML('beforeend', html); }
+    this.saveSel();
+    this.updateCounts();
+  }
+
+  insertText(ch) {
+    this.restoreSel();
+    try { document.execCommand('insertText', false, ch); } catch (e) {}
+    this.saveSel();
+    this.updateCounts();
+  }
+
+  openDialog(type) {
+    this.saveSel();
+    const el = this.docEl();
+    const selText = this.savedRange ? this.savedRange.toString().trim() : '';
+    const patch = { dialog: type, menuOpen: null, pop: null, dialogErr: '' };
+    if (type === 'link') { patch.linkUrl = ''; patch.linkText = selText; patch.linkNew = true; }
+    if (type === 'image') { patch.imgUrl = ''; patch.imgAlt = ''; patch.imgDecor = false; patch.imgName = ''; }
+    if (type === 'table') { patch.tRows = '3'; patch.tCols = '3'; patch.tHdr = true; }
+    if (type === 'source' && el) { patch.srcText = el.innerHTML.replace(/></g, '>\n<'); }
+    this.setState(patch);
+    if (type === 'preview') {
+      setTimeout(() => {
+        const p = document.getElementById('preview-body');
+        if (p && el) p.innerHTML = el.innerHTML;
+      }, 80);
+    }
+    if (type === 'count') this.updateCounts();
+  }
+
+  dialogError(msg) { this.setState({ dialogErr: msg }); }
+
+  escAttr(x) {
+    return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  doLink() {
+    const s = this.state;
+    let url = s.linkUrl.trim();
+    if (url === '') { this.dialogError('Enter a URL.'); return; }
+    if (/^\s*javascript:/i.test(url)) { this.dialogError('That URL is not allowed.'); return; }
+    if (!/^(https?:|mailto:|tel:|#|\/)/i.test(url)) url = 'https://' + url;
+    const sel = this.savedRange ? this.savedRange.toString().trim() : '';
+    const text = s.linkText.trim() || sel || url;
+    const html = '<a href="' + this.escAttr(url) + '"' + (s.linkNew ? ' target="_blank" rel="noopener"' : '') + '>' + this.escAttr(text) + '</a>';
+    this.setState({ dialog: null });
+    this.insertAtCursor(html);
+  }
+
+  doImage() {
+    const s = this.state;
+    const url = s.imgUrl.trim();
+    if (url === '') { this.dialogError('Add an image URL or upload a file.'); return; }
+    if (!/^(https?:\/\/|data:image\/)/i.test(url)) { this.dialogError('Use an http(s) address or upload a file.'); return; }
+    if (!s.imgDecor && s.imgAlt.trim() === '') { this.dialogError('Add alternative text, or mark the image as decorative.'); return; }
+    const alt = s.imgDecor ? '' : s.imgAlt.trim();
+    const html = '<img src="' + this.escAttr(url) + '" alt="' + this.escAttr(alt) + '" style="max-width: 100%; height: auto">';
+    this.setState({ dialog: null });
+    this.insertAtCursor(html);
+  }
+
+  tableHtml(rows, cols, header) {
+    let h = '<table><tbody>';
+    for (let r = 0; r < rows; r++) {
+      h += '<tr>';
+      for (let c = 0; c < cols; c++) h += (header && r === 0 ? '<th><br></th>' : '<td><br></td>');
+      h += '</tr>';
+    }
+    return h + '</tbody></table><p><br></p>';
+  }
+
+  doTable() {
+    const s = this.state;
+    const rows = Math.max(1, Math.min(20, parseInt(s.tRows, 10) || 0));
+    const cols = Math.max(1, Math.min(10, parseInt(s.tCols, 10) || 0));
+    if (!parseInt(s.tRows, 10) || !parseInt(s.tCols, 10)) { this.dialogError('Enter the number of rows and columns.'); return; }
+    this.setState({ dialog: null });
+    this.insertAtCursor(this.tableHtml(rows, cols, s.tHdr));
+  }
+
+  doSource() {
+    const el = this.docEl();
+    if (!el) return;
+    const tmp = document.createElement('template');
+    tmp.innerHTML = this.state.srcText;
+    tmp.content.querySelectorAll('script,iframe,object,embed,style,link,meta').forEach((n) => n.remove());
+    tmp.content.querySelectorAll('*').forEach((n) => {
+      Array.from(n.attributes).forEach((a) => {
+        if (/^on/i.test(a.name) || /^\s*javascript:/i.test(a.value)) n.removeAttribute(a.name);
+      });
+    });
+    el.innerHTML = '';
+    el.appendChild(tmp.content);
+    this.savedRange = null;
+    this.setState({ dialog: null, selWords: 0 });
+    this.updateCounts();
+  }
+
+  curCell() {
+    const r = this.savedRange;
+    if (!r) return null;
+    let n = r.startContainer;
+    if (n && n.nodeType === 3) n = n.parentElement;
+    return n && n.closest ? n.closest('td,th') : null;
+  }
+
+  tableOp(op) {
+    const cell = this.curCell();
+    if (!cell) { this.notify('Place the cursor in a table cell first.'); return; }
+    const row = cell.parentElement;
+    const table = cell.closest('table');
+    const idx = cell.cellIndex;
+    const blank = (tag) => { const n = document.createElement(tag); n.innerHTML = '<br>'; return n; };
+    const newRow = () => { const nr = row.cloneNode(true); nr.querySelectorAll('td,th').forEach((c) => { c.innerHTML = '<br>'; }); return nr; };
+    if (op === 'rowAfter') row.parentNode.insertBefore(newRow(), row.nextSibling);
+    if (op === 'rowBefore') row.parentNode.insertBefore(newRow(), row);
+    if (op === 'colAfter') Array.from(table.rows).forEach((tr) => { const c = tr.cells[idx]; if (c) tr.insertBefore(blank(c.tagName.toLowerCase()), c.nextSibling); });
+    if (op === 'colBefore') Array.from(table.rows).forEach((tr) => { const c = tr.cells[idx]; if (c) tr.insertBefore(blank(c.tagName.toLowerCase()), c); });
+    if (op === 'delRow') { if (table.rows.length <= 1) table.remove(); else row.remove(); }
+    if (op === 'delCol') { if (row.cells.length <= 1) table.remove(); else Array.from(table.rows).forEach((tr) => { if (tr.cells[idx]) tr.cells[idx].remove(); }); }
+    if (op === 'delTable') table.remove();
+    this.savedRange = null;
+    this.updateCounts();
+  }
+
+  textMatches(q) {
+    const el = this.docEl();
+    const out = [];
+    if (!el || !q) return out;
+    const lq = q.toLowerCase();
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) {
+      const t = n.nodeValue.toLowerCase();
+      let i = t.indexOf(lq);
+      while (i !== -1) { out.push({ n, i }); i = t.indexOf(lq, i + lq.length); }
+    }
+    return out;
+  }
+
+  findNext() {
+    const q = this.state.findText;
+    const ms = this.textMatches(q);
+    if (!ms.length) { this.notify('No matches.'); return; }
+    this.findIdx = (this.findIdx + 1) % ms.length;
+    const m = ms[this.findIdx];
+    const r = document.createRange();
+    r.setStart(m.n, m.i);
+    r.setEnd(m.n, m.i + q.length);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+    this.savedRange = r.cloneRange();
+    if (m.n.parentElement && m.n.parentElement.scrollIntoView) m.n.parentElement.scrollIntoView({ block: 'center' });
+    this.setState({ findCount: ms.length });
+  }
+
+  replaceOne() {
+    const q = this.state.findText;
+    const ms = this.textMatches(q);
+    if (!ms.length) { this.notify('No matches.'); return; }
+    if (this.findIdx < 0 || this.findIdx >= ms.length) this.findIdx = 0;
+    const m = ms[this.findIdx];
+    m.n.nodeValue = m.n.nodeValue.slice(0, m.i) + this.state.replText + m.n.nodeValue.slice(m.i + q.length);
+    this.findIdx = this.findIdx - 1;
+    this.setState({ findCount: this.textMatches(q).length });
+    this.updateCounts();
+  }
+
+  replaceAll() {
+    const q = this.state.findText;
+    const el = this.docEl();
+    if (!el || !q) return;
+    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    let n;
+    while ((n = w.nextNode())) nodes.push(n);
+    let count = 0;
+    nodes.forEach((t) => {
+      const m = t.nodeValue.match(re);
+      if (m) { count += m.length; t.nodeValue = t.nodeValue.replace(re, () => this.state.replText); }
+    });
+    this.findIdx = -1;
+    this.setState({ findCount: 0 });
+    this.notify(count + (count === 1 ? ' replacement made.' : ' replacements made.'));
+    this.updateCounts();
+  }
+
+  doPrint() {
+    try { window.print(); } catch (e) { this.notify('Printing is not available here.'); }
+  }
+
+  toggleBlocks() {
+    const el = this.docEl();
+    const on = !this.state.blocksOn;
+    if (el) { if (on) el.classList.add('showblocks'); else el.classList.remove('showblocks'); }
+    this.setState({ blocksOn: on });
+  }
+
+  restoreSel() {
+    const el = this.docEl();
+    if (!el) return;
+    el.focus();
+    if (this.savedRange) {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(this.savedRange);
+    }
+  }
+
+  fmt(name, arg) {
+    this.restoreSel();
+    try { document.execCommand('styleWithCSS', false, true); } catch (e) {}
+    try { document.execCommand(name, false, arg || null); } catch (e) {}
+    this.saveSel();
+    this.updateCounts();
+  }
+
+  getCtx() {
+    const el = this.docEl();
+    const selText = this.savedRange ? this.savedRange.toString().trim() : '';
+    const docText = el ? (el.innerText || '').trim() : '';
+    const text = selText !== '' ? selText : docText;
+    const words = text === '' ? 0 : text.split(/\s+/).length;
+    const scope = selText !== '' ? 'selection' : 'whole document';
+    return { words, scope, meta: 'Read ' + words + ' words from the ' + scope };
+  }
+
+  blocksToHtml(blocks) {
+    const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let out = '';
+    let inList = false;
+    blocks.forEach((b) => {
+      if (b.k === 'li') {
+        if (!inList) { out += '<ul>'; inList = true; }
+        out += '<li>' + esc(b.t) + '</li>';
+      } else {
+        if (inList) { out += '</ul>'; inList = false; }
+        out += b.k === 'h' ? '<h3>' + esc(b.t) + '</h3>' : '<p>' + esc(b.t) + '</p>';
+      }
+    });
+    if (inList) out += '</ul>';
+    return out;
+  }
+
+  insertHtml(html, replace) {
+    const el = this.docEl();
+    if (!el) return;
+    try {
+      el.focus();
+      const sel = window.getSelection();
+      if (replace && this.savedRange) {
+        sel.removeAllRanges();
+        sel.addRange(this.savedRange);
+      } else {
+        const r = document.createRange();
+        r.selectNodeContents(el);
+        r.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(r);
+      }
+      document.execCommand('insertHTML', false, html);
+    } catch (e) {
+      el.insertAdjacentHTML('beforeend', html);
+    }
+    this.savedRange = null;
+    this.setState({ selWords: 0 });
+  }
+
+  findAgent(type) {
+    const list = this.state.agents;
+    return list.find((a) => a.status === 'Active' && a.type === type) || list.find((a) => a.type === type) || null;
+  }
+
+  route(text) {
+    const t = text.toLowerCase();
+    if (/gap/.test(t)) return 'Skill gap analysis';
+    if (/align|standard/.test(t)) return 'Standard alignment';
+    if (/\btag\b|tagging|metadata/.test(t)) return 'Content tagging';
+    if (/micro/.test(t)) return 'Micro-course creation';
+    if (/skill|extract/.test(t)) return 'Skill extraction';
+    if (/curriculum|unit|scope|sequence|outline/.test(t)) return 'Curriculum creation';
+    return 'Content creation';
+  }
+
+  scrollChat() {
+    setTimeout(() => {
+      const el = document.getElementById('chat-scroll');
+      if (el) el.scrollTop = el.scrollHeight;
+    }, 60);
+  }
+
+  send() {
+    const st = this.state;
+    const text = st.comp.trim();
+    if (text === '' || st.busy) return;
+    const explicit = st.wsAgent ? st.agents.find((a) => a.name === st.wsAgent) : null;
+    const type = explicit ? explicit.type : this.route(text);
+    const agent = explicit || this.findAgent(type);
+    const ctx = this.getCtx();
+    const names = st.wsSources.map((s) => s.name);
+    const user = { id: 'u' + Date.now(), role: 'user', text, agent: explicit ? explicit.name : '', sources: names };
+    this.setState({ thread: st.thread.concat([user]), comp: '', busy: true, menu: null });
+    this.scrollChat();
+    setTimeout(() => {
+      const out = WS_OUT(type);
+      const msg = { id: 'a' + Date.now(), role: 'assistant', agent: agent ? agent.name : 'Assistant', routed: !explicit, sources: names, meta: ctx.meta, blocks: out.blocks };
+      this.setState({ thread: this.state.thread.concat([msg]), busy: false });
+      this.scrollChat();
+    }, 700);
+  }
+
+  runQuick(q) {
+    const agent = q.type ? this.findAgent(q.type) : null;
+    const ctx = this.getCtx();
+    this.setState({ result: { busy: true } });
+    setTimeout(() => {
+      const out = WS_OUT(q.type || q.id);
+      this.setState({ result: { busy: false, title: q.label, agent: agent ? '@ ' + agent.name : 'Built-in', meta: ctx.meta, blocks: out.blocks } });
+    }, 600);
+  }
+
+  runReview() {
+    if (this.state.reviewBusy) return;
+    this.setState({ reviewBusy: true });
+    setTimeout(() => {
+      this.setState({ reviewBusy: false, reviewRan: true, findings: WS_REVIEW.map((f) => Object.assign({ status: 'open' }, f)) });
+    }, 700);
+  }
+
+  setFinding(id, status) {
+    this.setState({ findings: this.state.findings.map((f) => (f.id === id ? Object.assign({}, f, { status }) : f)) });
+  }
+
+  applyFinding(id) {
+    const f = this.state.findings.find((x) => x.id === id);
+    const el = this.docEl();
+    if (!f || !el) return;
+    if (el.innerHTML.indexOf(f.before) === -1) { this.setFinding(id, 'missing'); return; }
+    el.innerHTML = el.innerHTML.replace(f.before, () => f.after);
+    this.savedRange = null;
+    this.setState({ selWords: 0 });
+    this.setFinding(id, 'applied');
+  }
+
+
+  saveAgent(status) {
+    const st = this.state;
+    const modelNames = { opus: 'Claude Opus 5.5', sonnet: 'Claude Sonnet 5.5', haiku: 'Claude Haiku 4.5' };
+    const kbNames = { standards: 'Academic Standards', skills: 'Skills Taxonomies', curriculum: 'Curriculum Library', content: 'Learning Content', credentials: 'Industry Credentials', style: 'Style and Accessibility Guides' };
+    const kbs = Object.keys(st.kbSel).filter((k) => st.kbSel[k]).map((k) => kbNames[k]);
+    if (st.uploads.length) kbs.push(st.uploads.length === 1 ? '1 uploaded file' : st.uploads.length + ' uploaded files');
+    if (!kbs.length) kbs.push('No knowledge');
+    const when = st.when.trim();
+    const agent = {
+      name: st.name.trim() !== '' ? st.name.trim() : 'Untitled agent',
+      type: st.agentType !== '' ? st.agentType : 'No type set',
+      desc: when !== '' ? (when.length > 90 ? when.slice(0, 87) + '...' : when) : 'No description yet.',
+      model: modelNames[st.model],
+      kbs,
+      status,
+      updated: 'Sep 30'
+    };
+    this.setState(Object.assign({ view: 'list', query: '', status: 'All', agents: [agent].concat(st.agents) }, BLANK()));
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+
+  addFiles(list) {
+    const fmt = (b) => (b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toFixed(1) + ' MB');
+    const arr = Array.from(list || []).map((f, i) => ({
+      id: f.name + '-' + f.size + '-' + Date.now() + '-' + i,
+      name: f.name,
+      size: fmt(f.size)
+    }));
+    if (arr.length) this.setState({ uploads: this.state.uploads.concat(arr) });
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? '#0E5A57';
+    const st = this.state;
+    const f = (k) => (e) => this.setState({ [k]: e.target.value });
+
+    // Model
+    const modelDefs = [
+      { id: 'opus', name: 'Claude Opus 5.5', badge: 'Most capable', note: 'Deepest reasoning for complex, multi-step work.' },
+      { id: 'sonnet', name: 'Claude Sonnet 5.5', badge: 'Recommended', note: 'Balanced quality and speed for everyday agents.' },
+      { id: 'haiku', name: 'Claude Haiku 4.5', badge: 'Fastest', note: 'Quick, lightweight replies for high-volume tasks.' }
+    ];
+    const models = modelDefs.map((m) => {
+      const selected = st.model === m.id;
+      return {
+        ...m,
+        selected,
+        pick: () => this.setState({ model: m.id }),
+        cardStyle: 'box-sizing: border-box; height: 190px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; text-align: left; padding: 20px; border-radius: 14px; cursor: pointer; background: ' + (selected ? '#E4EDEA' : '#FFFFFF') + '; border: 2px solid ' + (selected ? accent : '#DAD3C3'),
+        badgeStyle: 'display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: ' + (selected ? accent : '#EFEADD') + '; color: ' + (selected ? '#FFFFFF' : '#3D392F'),
+        radioStyle: 'width: 22px; height: 22px; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid ' + (selected ? accent : '#B5AD9A') + '; background: ' + (selected ? accent : '#FFFFFF')
+      };
+    });
+    const modelName = modelDefs.find((m) => m.id === st.model).name;
+
+    // Knowledge bases
+    const kbDefs = [
+      { id: 'standards', name: 'Academic Standards', desc: 'Standards frameworks and their indicators.', tags: ['standards', 'curriculum'] },
+      { id: 'skills', name: 'Skills Taxonomies', desc: 'Skill frameworks and competency models.', tags: ['skills', 'workforce'] },
+      { id: 'curriculum', name: 'Curriculum Library', desc: 'Courses, units and scope and sequence.', tags: ['curriculum', 'content'] },
+      { id: 'content', name: 'Learning Content', desc: 'Lessons, activities and assessments.', tags: ['content', 'curriculum'] },
+      { id: 'credentials', name: 'Industry Credentials', desc: 'Certification blueprints and exam objectives.', tags: ['credentials', 'workforce', 'skills'] },
+      { id: 'style', name: 'Style and Accessibility Guides', desc: 'Editorial rules and accessibility requirements.', tags: ['style', 'accessibility'] }
+    ];
+    const tagList = ['all', 'standards', 'skills', 'curriculum', 'content', 'credentials', 'workforce', 'style', 'accessibility'];
+    const tagFilters = tagList.map((t) => {
+      const active = st.tag === t;
+      return {
+        label: t === 'all' ? 'All' : t,
+        active,
+        pick: () => this.setState({ tag: t }),
+        style: 'min-height: 44px; padding: 0 16px; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 600; border: 1px solid ' + (active ? accent : '#C9C1AE') + '; background: ' + (active ? accent : '#FFFFFF') + '; color: ' + (active ? '#FFFFFF' : '#1F1D18')
+      };
+    });
+    const visible = kbDefs.filter((k) => st.tag === 'all' || k.tags.indexOf(st.tag) !== -1);
+    const kbs = visible.map((k) => {
+      const selected = !!st.kbSel[k.id];
+      return {
+        ...k,
+        tags: k.tags.map((t) => ({ label: t })),
+        selected,
+        toggle: () => this.setState({ kbSel: { ...st.kbSel, [k.id]: !st.kbSel[k.id] } }),
+        rowStyle: 'box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: none; border-bottom: 1px solid #E6E0D2; cursor: pointer; text-align: left; background: ' + (selected ? '#E4EDEA' : '#FFFFFF'),
+        boxStyle: 'width: 24px; height: 24px; flex-shrink: 0; border-radius: 6px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid ' + (selected ? accent : '#B5AD9A') + '; background: ' + (selected ? accent : '#FFFFFF')
+      };
+    });
+    const selectedKbs = kbDefs.filter((k) => st.kbSel[k.id]).map((k) => ({ name: k.name, removeLabel: 'Remove ' + k.name, remove: () => this.setState({ kbSel: { ...this.state.kbSel, [k.id]: false } }) }));
+    const n = selectedKbs.length;
+
+    // Multi-agent
+    const callDefs = [
+      { id: 'any', label: 'Any agent', note: 'Discoverable by every agent on the platform.' },
+      { id: 'approved', label: 'Approved agents', note: 'Only agents you approve can call it.' },
+      { id: 'orch', label: 'Orchestrator only', note: 'Reachable only through the orchestrator.' }
+    ];
+    const callOptions = callDefs.map((c) => {
+      const selected = st.callable === c.id;
+      return {
+        ...c,
+        selected,
+        pick: () => this.setState({ callable: c.id }),
+        style: 'box-sizing: border-box; height: 92px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; padding: 14px; border-radius: 12px; cursor: pointer; background: ' + (selected ? '#E4EDEA' : '#FFFFFF') + '; border: 2px solid ' + (selected ? accent : '#DAD3C3')
+      };
+    });
+    const callableLabel = callDefs.find((c) => c.id === st.callable).label;
+
+    const otherAgents = ['Standards Aligner', 'Content Tagger', 'Skill Extractor', 'Skill Gap Analyzer', 'Content Creator', 'Curriculum Designer', 'Micro-course Builder'];
+    const handoffs = otherAgents.map((a) => {
+      const selected = !!st.hand[a];
+      return {
+        name: a,
+        selected,
+        toggle: () => this.setState({ hand: { ...st.hand, [a]: !st.hand[a] } }),
+        style: 'min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 600; border: 1px solid ' + (selected ? accent : '#C9C1AE') + '; background: ' + (selected ? accent : '#FFFFFF') + '; color: ' + (selected ? '#FFFFFF' : '#1F1D18')
+      };
+    });
+    const handNames = otherAgents.filter((a) => st.hand[a]);
+
+    // Uploads
+    const uploads = st.uploads.map((u) => ({
+      name: u.name,
+      size: u.size,
+      removeLabel: 'Remove ' + u.name,
+      remove: () => this.setState({ uploads: this.state.uploads.filter((x) => x.id !== u.id) })
+    }));
+    const uc = st.uploads.length;
+
+    // Required details
+    const req = [
+      { label: 'Agent name', done: st.name.trim() !== '' },
+      { label: 'Call handle', done: st.handle.trim() !== '' },
+      { label: 'Instructions', done: st.instr.trim() !== '' },
+      { label: 'When to call', done: st.when.trim() !== '' },
+      { label: 'Input expected', done: st.inSpec.trim() !== '' },
+      { label: 'Output returned', done: st.outSpec.trim() !== '' }
+    ];
+    const doneCount = req.filter((r) => r.done).length;
+    const checklist = req.map((r) => ({
+      label: r.label,
+      done: r.done,
+      state: r.done ? 'Done' : 'Missing',
+      iconStyle: 'width: 20px; height: 20px; flex-shrink: 0; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid ' + (r.done ? '#0B4A2E' : '#8C846F') + '; background: ' + (r.done ? '#0B4A2E' : '#FFFFFF')
+    }));
+    const ready = doneCount === req.length;
+
+
+    // ---- Agents list
+    const pill = {
+      Active: { bg: '#DCEBE3', fg: '#0B4A2E', dot: '#1E8A55' },
+      Draft: { bg: '#EFEADD', fg: '#3D392F', dot: '#8C846F' },
+      Paused: { bg: '#F6E3CF', fg: '#6B3A0B', dot: '#C7761E' }
+    };
+    const q = st.query.trim().toLowerCase();
+    const filtered = st.agents.filter((a) =>
+      (st.status === 'All' || a.status === st.status) &&
+      (q === '' || a.name.toLowerCase().indexOf(q) !== -1 || a.desc.toLowerCase().indexOf(q) !== -1 || a.kbs.join(' ').toLowerCase().indexOf(q) !== -1)
+    );
+    const rows = filtered.map((a) => {
+      const p = pill[a.status];
+      return {
+        name: a.name, type: a.type, desc: a.desc, model: a.model, status: a.status, updated: a.updated,
+        kbs: a.kbs.map((k) => ({ label: k })),
+        pillStyle: 'display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: ' + p.bg + '; color: ' + p.fg,
+        dotStyle: 'width: 8px; height: 8px; border-radius: 50%; display: block; background: ' + p.dot
+      };
+    });
+    const statusFilters = ['All', 'Active', 'Draft', 'Paused'].map((s) => {
+      const active = st.status === s;
+      return {
+        label: s, active,
+        pick: () => this.setState({ status: s }),
+        style: 'min-height: 44px; padding: 0 18px; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 600; border: 1px solid ' + (active ? accent : '#C9C1AE') + '; background: ' + (active ? accent : '#FFFFFF') + '; color: ' + (active ? '#FFFFFF' : '#1F1D18')
+      };
+    });
+
+    // ---- Workspace
+    const activeAgents = st.agents.filter((a) => a.status === 'Active');
+    const mapB = (bl) => (bl || []).map((b) => ({ text: b.t, isH: b.k === 'h', isP: b.k === 'p', isLi: b.k === 'li' }));
+    const replaceLabel = st.selWords > 0 ? 'Replace selection' : 'Insert at cursor';
+    const ctxLabel = st.selWords > 0 ? 'Context: selection · ' + st.selWords + (st.selWords === 1 ? ' word' : ' words') : 'Context: whole document';
+
+    const navBase = 'display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px; font-size: 15px; width: 100%; text-align: left; cursor: pointer; font-family: inherit; box-sizing: border-box; ';
+    const navOn = navBase + 'background: #FBF9F4; border: 1px solid #DAD3C3; color: #1F1D18; font-weight: 600';
+    const navOff = navBase + 'background: transparent; border: 1px solid transparent; color: #4A463C; font-weight: 500';
+
+    // ---- Editor: menus, toolbar, dialogs
+    const closeMenus = () => this.setState({ menuOpen: null, pop: null });
+    const fm = (name, arg) => () => { closeMenus(); this.fmt(name, arg); };
+    const mi = (label, fn, sc) => ({ isItem: true, sep: false, label, shortcut: sc || '', run: () => { closeMenus(); fn(); } });
+    const sp = () => ({ isItem: false, sep: true, label: '', shortcut: '', run: () => {} });
+    const dlg = (t) => () => this.openDialog(t);
+    const tpl = (html) => () => this.insertAtCursor(html);
+    const T_OBJ = '<h2>Learning objectives</h2><p>By the end of this lesson, students will be able to:</p><ul><li>[Objective 1]</li><li>[Objective 2]</li></ul>';
+    const T_VOC = '<h2>Key vocabulary</h2><table><tbody><tr><th>Term</th><th>Definition</th></tr><tr><td>[Term]</td><td>[Definition]</td></tr><tr><td>[Term]</td><td>[Definition]</td></tr></tbody></table><p><br></p>';
+    const T_CHK = '<h2>Check for understanding</h2><ol><li>[Question 1]</li><li>[Question 2]</li><li>[Question 3]</li></ol>';
+    const T_RUB = '<h2>Rubric</h2><table><tbody><tr><th>Criteria</th><th>4 · Exceeds</th><th>3 · Meets</th><th>2 · Approaching</th></tr><tr><td>[Criterion]</td><td><br></td><td><br></td><td><br></td></tr><tr><td>[Criterion]</td><td><br></td><td><br></td><td><br></td></tr></tbody></table><p><br></p>';
+    const T_ACC = '<details><summary>[Summary]</summary><p>[Content]</p></details><p><br></p>';
+
+    const menuDefs = [
+      ['File', [
+        mi('New document', () => { this.fmt('selectAll'); this.fmt('delete'); }),
+        mi('Print', () => this.doPrint(), 'Ctrl+P')
+      ]],
+      ['Edit', [
+        mi('Undo', () => this.fmt('undo'), 'Ctrl+Z'),
+        mi('Redo', () => this.fmt('redo'), 'Ctrl+Y'),
+        sp(),
+        mi('Cut', () => this.fmt('cut'), 'Ctrl+X'),
+        mi('Copy', () => this.fmt('copy'), 'Ctrl+C'),
+        sp(),
+        mi('Select all', () => this.fmt('selectAll'), 'Ctrl+A'),
+        sp(),
+        mi('Find and replace', () => this.setState({ findOpen: true }))
+      ]],
+      ['View', [
+        mi('Source code', dlg('source')),
+        mi('Preview', dlg('preview')),
+        sp(),
+        mi(st.blocksOn ? 'Hide blocks' : 'Show blocks', () => this.toggleBlocks()),
+        mi(st.full ? 'Exit fullscreen' : 'Fullscreen', () => this.setState({ full: !this.state.full })),
+        sp(),
+        mi('Word count', dlg('count'))
+      ]],
+      ['Insert', [
+        mi('Link', dlg('link')),
+        mi('Image', dlg('image')),
+        mi('Table', dlg('table')),
+        sp(),
+        mi('Horizontal line', () => this.fmt('insertHorizontalRule')),
+        mi('Page break', tpl('<hr class="pb"><p><br></p>')),
+        mi('Blockquote', () => this.fmt('formatBlock', 'BLOCKQUOTE')),
+        mi('Code block', () => this.fmt('formatBlock', 'PRE')),
+        mi('Accordion', tpl(T_ACC)),
+        sp(),
+        mi('Special character', dlg('chars')),
+        mi('Emoji', dlg('emoji')),
+        mi('Date and time', () => this.insertText(new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }))),
+        sp(),
+        mi('Template: Learning objectives', tpl(T_OBJ)),
+        mi('Template: Key vocabulary', tpl(T_VOC)),
+        mi('Template: Check for understanding', tpl(T_CHK)),
+        mi('Template: Rubric', tpl(T_RUB))
+      ]],
+      ['Format', [
+        mi('Bold', () => this.fmt('bold'), 'Ctrl+B'),
+        mi('Italic', () => this.fmt('italic'), 'Ctrl+I'),
+        mi('Underline', () => this.fmt('underline'), 'Ctrl+U'),
+        mi('Strikethrough', () => this.fmt('strikeThrough')),
+        mi('Superscript', () => this.fmt('superscript')),
+        mi('Subscript', () => this.fmt('subscript')),
+        sp(),
+        mi('Heading 1', () => this.fmt('formatBlock', 'H1')),
+        mi('Heading 2', () => this.fmt('formatBlock', 'H2')),
+        mi('Heading 3', () => this.fmt('formatBlock', 'H3')),
+        mi('Paragraph', () => this.fmt('formatBlock', 'P')),
+        sp(),
+        mi('Align left', () => this.fmt('justifyLeft')),
+        mi('Align center', () => this.fmt('justifyCenter')),
+        mi('Align right', () => this.fmt('justifyRight')),
+        mi('Justify', () => this.fmt('justifyFull')),
+        sp(),
+        mi('Clear formatting', () => this.fmt('removeFormat'))
+      ]],
+      ['Table', [
+        mi('Insert table', dlg('table')),
+        sp(),
+        mi('Row above', () => this.tableOp('rowBefore')),
+        mi('Row below', () => this.tableOp('rowAfter')),
+        mi('Column left', () => this.tableOp('colBefore')),
+        mi('Column right', () => this.tableOp('colAfter')),
+        sp(),
+        mi('Delete row', () => this.tableOp('delRow')),
+        mi('Delete column', () => this.tableOp('delCol')),
+        mi('Delete table', () => this.tableOp('delTable'))
+      ]],
+      ['Tools', [
+        mi('Word count', dlg('count')),
+        mi('Source code', dlg('source')),
+        sp(),
+        mi('Accessibility check', () => { this.setState({ wsTab: 'review', full: false }); this.runReview(); })
+      ]],
+      ['Help', [
+        mi('Keyboard shortcuts', dlg('help'))
+      ]]
+    ];
+    const menus = menuDefs.map((d) => {
+      const open = st.menuOpen === d[0];
+      return {
+        label: d[0], open, items: d[1],
+        toggle: () => this.setState({ menuOpen: open ? null : d[0], pop: null }),
+        style: 'min-height: 36px; padding: 0 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: #1F1D18; background: ' + (open ? '#E4EDEA' : 'transparent')
+      };
+    });
+
+    const tb = (aria, glyph, run, gs) => ({ isBtn: true, aria, glyph, glyphStyle: gs || 'font-size: 15px; font-weight: 600', run, hasGlyph: true, hasLines: false, lines: [] });
+    const tbLines = (aria, run, widths, align) => ({ isBtn: true, aria, glyph: '', glyphStyle: '', run, hasGlyph: false, hasLines: true, lines: widths.map((w) => ({ style: 'height: 2px; border-radius: 1px; background: #1F1D18; width: ' + w + 'px; align-self: ' + align })) });
+    const tbSel = (id, aria, label, opts, change) => ({
+      isSelect: true, aria, selLabel: label,
+      open: st.pop === id,
+      toggle: () => this.setState({ pop: st.pop === id ? null : id, menuOpen: null }),
+      options: opts.map((o) => ({ l: o[1], pick: () => { this.setState({ pop: null }); change(o[0]); } }))
+    });
+    const tbColor = (id, aria, bar, colors, cmd) => ({
+      isColor: true, aria, glyph: 'A',
+      barStyle: 'display: block; width: 18px; height: 4px; border-radius: 2px; border: 1px solid #C9C1AE; background: ' + bar,
+      open: st.pop === id,
+      toggle: () => this.setState({ pop: st.pop === id ? null : id, menuOpen: null }),
+      swatches: colors.map((c) => ({
+        label: c === 'none' ? 'No color' : c,
+        glyph: c === 'none' ? '\u00D7' : '',
+        style: 'width: 32px; height: 32px; border-radius: 8px; border: 1px solid #C9C1AE; cursor: pointer; font-size: 16px; color: #1F1D18; background: ' + (c === 'none' ? '#FFFFFF' : c),
+        apply: () => { this.setState({ pop: null }); this.fmt(cmd, c === 'none' ? (cmd === 'foreColor' ? '#1F1D18' : 'transparent') : c); }
+      }))
+    });
+    const SEP = { sep: true };
+    const full = { sep: false, isBtn: false, isSelect: false, isColor: false, aria: '', glyph: '', glyphStyle: '', run: () => {}, hasGlyph: false, hasLines: false, lines: [], selLabel: '', options: [], change: () => {}, open: false, toggle: () => {}, swatches: [], barStyle: '' };
+    const norm = (arr) => arr.map((t) => Object.assign({}, full, t));
+    const iUndo = tb('Undo', '\u21B6', () => this.fmt('undo'), 'font-size: 20px');
+    const iRedo = tb('Redo', '\u21B7', () => this.fmt('redo'), 'font-size: 20px');
+    const iBlocks = tbSel('blocks', 'Block format', 'Blocks', [['P', 'Paragraph'], ['H1', 'Heading 1'], ['H2', 'Heading 2'], ['H3', 'Heading 3'], ['H4', 'Heading 4'], ['BLOCKQUOTE', 'Blockquote'], ['PRE', 'Preformatted']], (v) => this.fmt('formatBlock', v));
+    const iFont = tbSel('font', 'Font family', 'Font', [['Instrument Sans', 'Instrument Sans'], ['Georgia', 'Georgia'], ['Fraunces', 'Fraunces'], ['Arial', 'Arial'], ['Verdana', 'Verdana'], ['Times New Roman', 'Times New Roman'], ['Courier New', 'Courier New']], (v) => this.fmt('fontName', v));
+    const iSize = tbSel('size', 'Font size', 'Size', [['1', '8 pt'], ['2', '10 pt'], ['3', '12 pt'], ['4', '14 pt'], ['5', '18 pt'], ['6', '24 pt'], ['7', '36 pt']], (v) => this.fmt('fontSize', v));
+    const iBold = tb('Bold', 'B', () => this.fmt('bold'), 'font-size: 16px; font-weight: 800');
+    const iItalic = tb('Italic', 'I', () => this.fmt('italic'), 'font-size: 16px; font-style: italic; font-family: Georgia, serif');
+    const iUnder = tb('Underline', 'U', () => this.fmt('underline'), 'font-size: 16px; text-decoration: underline');
+    const iStrike = tb('Strikethrough', 'S', () => this.fmt('strikeThrough'), 'font-size: 16px; text-decoration: line-through');
+    const iSup = tb('Superscript', 'x\u00B2', () => this.fmt('superscript'));
+    const iSub = tb('Subscript', 'x\u2082', () => this.fmt('subscript'));
+    const iFore = tbColor('fore', 'Text color', '#9B2C1F', ['#1F1D18', '#6B3A0B', '#9B2C1F', '#C7761E', '#B8860B', '#0B4A2E', '#0E5A57', '#1E5AA8', '#3B3A8C', '#7A2E8C', '#5B564B', 'none'], 'foreColor');
+    const iBack = tbColor('back', 'Highlight color', '#FFF3B0', ['#FFF3B0', '#FFD9B0', '#FFC9C9', '#D6F5D6', '#CDE8F7', '#E3D6F5', '#EDEDED', 'none'], 'hiliteColor');
+    const iAL = tbLines('Align left', () => this.fmt('justifyLeft'), [18, 12, 18, 10], 'flex-start');
+    const iAC = tbLines('Align center', () => this.fmt('justifyCenter'), [18, 12, 18, 10], 'center');
+    const iAR = tbLines('Align right', () => this.fmt('justifyRight'), [18, 12, 18, 10], 'flex-end');
+    const iAJ = tbLines('Justify', () => this.fmt('justifyFull'), [18, 18, 18, 18], 'flex-start');
+    const iBul = tb('Bulleted list', '\u2022\u2261', () => this.fmt('insertUnorderedList'));
+    const iNum = tb('Numbered list', '1.', () => this.fmt('insertOrderedList'));
+    const iOut = tb('Decrease indent', '\u21E4', () => this.fmt('outdent'), 'font-size: 18px');
+    const iInd = tb('Increase indent', '\u21E5', () => this.fmt('indent'), 'font-size: 18px');
+    const iLink = tb('Insert link', 'Link', dlg('link'), 'font-size: 13px; font-weight: 600');
+    const iUnlink = tb('Remove link', 'Unlink', () => this.fmt('unlink'), 'font-size: 13px; font-weight: 600');
+    const iImage = tb('Insert image', 'Image', dlg('image'), 'font-size: 13px; font-weight: 600');
+    const iTable = tb('Insert table', 'Table', dlg('table'), 'font-size: 13px; font-weight: 600');
+    const iQuote = tb('Blockquote', '\u275D', () => this.fmt('formatBlock', 'BLOCKQUOTE'), 'font-size: 18px');
+    const iHr = tb('Horizontal line', '\u2015', () => this.fmt('insertHorizontalRule'), 'font-size: 18px');
+    const iChars = tb('Special character', '\u03A9', dlg('chars'), 'font-size: 17px');
+    const iEmoji = tb('Emoji', '\u263A', dlg('emoji'), 'font-size: 18px');
+    const iClear = tb('Clear formatting', 'T\u2093', () => this.fmt('removeFormat'), 'font-size: 15px; font-weight: 600');
+    const iFind = tb('Find and replace', 'Find', () => this.setState({ findOpen: !this.state.findOpen }), 'font-size: 13px; font-weight: 600');
+    const iSrc = tb('Source code', '</>', dlg('source'), 'font-size: 13px; font-weight: 700; font-family: Consolas, Menlo, monospace');
+    const iFull = tb(st.full ? 'Exit fullscreen' : 'Fullscreen', st.full ? '\u2921' : '\u2922', () => this.setState({ full: !this.state.full }), 'font-size: 18px');
+
+    // Row 2 shows the essentials; "More" reveals everything else.
+    const toolbar = norm([iUndo, iRedo, SEP, iBlocks, SEP, iBold, iItalic, iUnder, SEP, iBul, iNum, SEP, iLink, iImage]);
+    const toolbarMore = norm([iFont, iSize, SEP, iStrike, iSup, iSub, SEP, iFore, iBack, SEP, iAL, iAC, iAR, iAJ, SEP, iOut, iInd, SEP, iUnlink, iTable, iQuote, iHr, SEP, iChars, iEmoji, SEP, iClear, iFind, iSrc, iFull]);
+
+    const dialogDefs = {
+      link: ['Insert link', '520px', ['Insert link', () => this.doLink()]],
+      image: ['Insert image', '520px', ['Insert image', () => this.doImage()]],
+      table: ['Insert table', '440px', ['Insert table', () => this.doTable()]],
+      source: ['Source code', '780px', ['Save', () => this.doSource()]],
+      preview: ['Preview', '780px', null],
+      chars: ['Special characters', '520px', null],
+      emoji: ['Emoji', '520px', null],
+      count: ['Word count', '420px', null],
+      help: ['Keyboard shortcuts', '460px', null]
+    };
+    const dd = st.dialog ? dialogDefs[st.dialog] : null;
+    const chars = ['\u00A9', '\u00AE', '\u2122', '\u00B0', '\u00B1', '\u00D7', '\u00F7', '\u2260', '\u2264', '\u2265', '\u2248', '\u221E', '\u221A', '\u2211', '\u03C0', '\u0394', '\u03B8', '\u03BB', '\u03BC', '\u03B1', '\u03B2', '\u03B3', '\u03A9', '\u00B2', '\u00B3', '\u00BD', '\u00BC', '\u00BE', '\u2192', '\u2190', '\u2191', '\u2193', '\u2713', '\u2717', '\u2022', '\u2026', '\u2013', '\u2014', '\u00AB', '\u00BB', '\u00A7', '\u00B6', '\u2020', '\u20AC', '\u00A3', '\u00A5', '\u00A2', '\u00B5'];
+    const specialChars = chars.map((c) => ({ ch: c, label: 'Insert ' + c, pick: () => this.insertText(c) }));
+    const emojiList = ['\uD83D\uDE00', '\uD83D\uDE0A', '\uD83D\uDE09', '\uD83D\uDC4D', '\uD83D\uDC4F', '\uD83C\uDF89', '\u2B50', '\uD83D\uDCA1', '\uD83D\uDCDA', '\u270F\uFE0F', '\uD83C\uDF93', '\uD83D\uDD2C', '\uD83E\uDDEA', '\uD83E\uDDEE', '\uD83D\uDD0E', '\uD83D\uDCC5', '\uD83D\uDCDD', '\uD83C\uDFEB', '\u2753', '\u2757', '\u26A0\uFE0F', '\u2705', '\u274C', '\uD83C\uDFAF', '\uD83D\uDD14', '\uD83D\uDD52', '\uD83C\uDF0D', '\uD83C\uDF31', '\uD83D\uDE80', '\uD83E\uDDE0', '\uD83E\uDD1D', '\uD83D\uDCAC'];
+    const emojis = emojiList.map((c) => ({ ch: c, label: 'Insert ' + c, pick: () => this.insertText(c) }));
+    const checkBox = (on) => 'width: 20px; height: 20px; flex-shrink: 0; border-radius: 5px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid ' + (on ? accent : '#B5AD9A') + '; background: ' + (on ? accent : '#FFFFFF');
+    const countRows = [
+      { label: 'Words', value: String(st.docWords) },
+      { label: 'Characters', value: String(st.docChars) },
+      { label: 'Characters (no spaces)', value: String(st.docNoSp) },
+      { label: 'Blocks (paragraphs, list items, headings)', value: String(st.docBlocks) }
+    ].concat(st.selWords > 0 ? [{ label: 'Words in selection', value: String(st.selWords) }] : []);
+    const helpRows = [
+      { label: 'Bold', value: 'Ctrl + B' }, { label: 'Italic', value: 'Ctrl + I' }, { label: 'Underline', value: 'Ctrl + U' },
+      { label: 'Undo', value: 'Ctrl + Z' }, { label: 'Redo', value: 'Ctrl + Y' }, { label: 'Select all', value: 'Ctrl + A' },
+      { label: 'New line inside a block', value: 'Shift + Enter' }, { label: 'Mac users', value: 'Use Cmd instead of Ctrl' }
+    ];
+
+    const wsTabs = [['chat', 'Chat'], ['actions', 'Quick actions'], ['review', 'Review']].map((p) => {
+      const active = st.wsTab === p[0];
+      return {
+        label: p[1], active,
+        pick: () => this.setState({ wsTab: p[0], menu: null }),
+        style: 'min-height: 44px; border-radius: 9px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; background: ' + (active ? '#FFFFFF' : 'transparent') + '; color: ' + (active ? '#1F1D18' : '#4A463C') + (active ? '; box-shadow: 0 1px 2px rgba(31,29,24,0.18)' : '')
+      };
+    });
+
+    const examples = WS_EXAMPLES.map((x) => {
+      const ag = this.findAgent(x.type);
+      return {
+        text: x.text,
+        meta: (ag ? '@ ' + ag.name : 'No ' + x.type.toLowerCase() + ' agent yet') + (x.sources.length ? ' · # ' + x.sources.map((s) => s.name).join(', ') : ''),
+        pick: () => this.setState({ comp: x.text, wsAgent: ag ? ag.name : null, wsSources: x.sources.slice(), menu: null })
+      };
+    });
+
+    const thread = st.thread.map((m) => ({
+      id: m.id,
+      isUser: m.role === 'user',
+      isAssistant: m.role === 'assistant',
+      text: m.text || '',
+      ctx: [m.agent ? '@ ' + m.agent : '', (m.sources || []).length ? '# ' + m.sources.join(', ') : ''].filter((x) => x !== '').join(' · '),
+      agent: m.agent || '',
+      routeLabel: m.routed ? 'Auto-routed' : 'Called directly',
+      meta: (m.meta || '') + ((m.sources || []).length ? ' · Used: ' + m.sources.join(', ') : ''),
+      blocks: mapB(m.blocks),
+      insertBelow: () => this.insertHtml(this.blocksToHtml(m.blocks || []), false),
+      replace: () => this.insertHtml(this.blocksToHtml(m.blocks || []), true)
+    }));
+
+    const agentOptions = [{ name: 'Auto-route', desc: 'The orchestrator picks the right agent', selected: st.wsAgent === null, pick: () => this.setState({ wsAgent: null, menu: null }) }]
+      .concat(activeAgents.map((a) => ({ name: a.name, desc: a.type, selected: st.wsAgent === a.name, pick: () => this.setState({ wsAgent: a.name, menu: null }) })))
+      .map((o) => Object.assign({}, o, { style: 'box-sizing: border-box; width: 100%; text-align: left; min-height: 48px; padding: 8px 10px; border-radius: 10px; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 2px; background: ' + (o.selected ? '#E4EDEA' : 'transparent') }));
+
+    const toggleSrc = (src) => () => {
+      const cur = this.state.wsSources;
+      this.setState({ wsSources: cur.some((s) => s.id === src.id) ? cur.filter((s) => s.id !== src.id) : cur.concat([src]) });
+    };
+    const mkSrc = (src) => {
+      const selected = st.wsSources.some((s) => s.id === src.id);
+      return {
+        name: src.name, selected, toggle: toggleSrc(src),
+        style: 'box-sizing: border-box; width: 100%; text-align: left; min-height: 44px; padding: 6px 10px; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: ' + (selected ? '#E4EDEA' : 'transparent'),
+        boxStyle: 'width: 20px; height: 20px; flex-shrink: 0; border-radius: 5px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid ' + (selected ? accent : '#B5AD9A') + '; background: ' + (selected ? accent : '#FFFFFF')
+      };
+    };
+    const sourceGroups = kbDefs.map((k) => ({
+      kb: k.name,
+      tags: k.tags.join(', '),
+      whole: mkSrc({ id: k.name + '::*', name: k.name, kind: 'kb' }),
+      files: (WS_FILES[k.name] || []).map((fn) => mkSrc({ id: k.name + '::' + fn, name: fn, kind: 'file' }))
+    }));
+    const sourceChips = st.wsSources.map((s) => ({
+      name: s.name,
+      removeLabel: 'Remove ' + s.name,
+      remove: () => this.setState({ wsSources: this.state.wsSources.filter((x) => x.id !== s.id) })
+    }));
+
+    const quickActions = WS_QA.map((q) => {
+      const ag = q.type ? this.findAgent(q.type) : null;
+      const disabled = !!q.type && !ag;
+      return {
+        label: q.label, desc: q.desc, disabled,
+        tag: q.type ? (ag ? '@ ' + ag.name : 'No agent for this yet') : 'Built-in',
+        tagStyle: 'font-size: 12px; line-height: 16px; font-weight: 600; color: ' + (disabled ? '#6B3A0B' : '#0E5A57'),
+        style: 'box-sizing: border-box; text-align: left; min-height: 96px; padding: 12px; border-radius: 12px; border: 1px solid #DAD3C3; background: ' + (disabled ? '#F3EFE6' : '#FFFFFF') + '; cursor: ' + (disabled ? 'not-allowed' : 'pointer') + '; display: flex; flex-direction: column; gap: 4px',
+        run: () => { if (!disabled) this.runQuick(q); }
+      };
+    });
+    const res = st.result;
+    const resHtml = () => this.blocksToHtml((res && res.blocks) || []);
+
+    const findings = st.findings.map((f) => ({
+      cat: f.cat, title: f.title, before: f.before, after: f.after,
+      hasChange: f.after !== '',
+      isOpen: f.status === 'open',
+      statusLabel: { open: 'Open', applied: 'Applied', dismissed: 'Dismissed', missing: 'Text changed, not applied' }[f.status],
+      apply: () => this.applyFinding(f.id),
+      dismiss: () => this.setFinding(f.id, 'dismissed')
+    }));
+    const openCount = st.findings.filter((f) => f.status === 'open').length;
+
+    return {
+      accent,
+      showList: st.view === 'list',
+      notFull: !st.full,
+      sbHidden: st.sbHidden,
+      showSidebar: !st.sbHidden,
+      toggleSidebar: () => this.setState({ sbHidden: !this.state.sbHidden }),
+      anyMenu: st.menuOpen !== null || st.pop !== null,
+      closeEdMenus: () => this.setState({ menuOpen: null, pop: null }),
+      menus,
+      toolbarMore,
+      tbExpanded: st.tbExpanded,
+      toggleMore: () => this.setState({ tbExpanded: !this.state.tbExpanded, pop: null }),
+      moreLabel: st.tbExpanded ? 'Less' : 'More',
+      moreBg: st.tbExpanded ? '#E4EDEA' : '#FFFFFF',
+      moreChevron: st.tbExpanded ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6',
+      docPath: st.docPath === '' ? 'Click in the document to see the element path' : st.docPath,
+      docNote: st.note,
+      docStats: st.docWords + (st.docWords === 1 ? ' word' : ' words') + ' · ' + st.docChars + ' characters',
+      findOpen: st.findOpen,
+      findText: st.findText,
+      replText: st.replText,
+      findCountLabel: st.findText === '' ? '' : (st.findCount === 1 ? '1 match' : st.findCount + ' matches'),
+      onFindText: (e) => { const v = e.target.value; this.findIdx = -1; this.setState({ findText: v, findCount: this.textMatches(v).length }); },
+      onReplText: (e) => this.setState({ replText: e.target.value }),
+      findNext: () => this.findNext(),
+      replaceOne: () => this.replaceOne(),
+      replaceAll: () => this.replaceAll(),
+      closeFind: () => this.setState({ findOpen: false }),
+      hasDialog: !!dd,
+      dialogTitle: dd ? dd[0] : '',
+      dialogStyle: 'width: 100%; max-width: ' + (dd ? dd[1] : '520px') + '; max-height: 100%; overflow-y: auto; box-sizing: border-box; background: #FBF9F4; border-radius: 16px; border: 1px solid #C9C1AE; padding: 24px; display: flex; flex-direction: column; gap: 16px',
+      dLink: st.dialog === 'link', dImage: st.dialog === 'image', dTable: st.dialog === 'table', dSource: st.dialog === 'source',
+      dPreview: st.dialog === 'preview', dChars: st.dialog === 'chars', dEmoji: st.dialog === 'emoji', dCount: st.dialog === 'count', dHelp: st.dialog === 'help',
+      closeDialog: () => this.setState({ dialog: null }),
+      closeLabel: dd && dd[2] ? 'Cancel' : 'Close',
+      hasPrimary: !!(dd && dd[2]),
+      primaryLabel: dd && dd[2] ? dd[2][0] : '',
+      primaryRun: dd && dd[2] ? dd[2][1] : () => {},
+      hasErr: st.dialogErr !== '',
+      dialogErr: st.dialogErr,
+      linkUrl: st.linkUrl, linkText: st.linkText, linkNew: st.linkNew,
+      onLinkUrl: (e) => this.setState({ linkUrl: e.target.value, dialogErr: '' }),
+      onLinkText: (e) => this.setState({ linkText: e.target.value }),
+      toggleLinkNew: () => this.setState({ linkNew: !st.linkNew }),
+      linkNewBox: checkBox(st.linkNew),
+      imgUrlShown: st.imgUrl.indexOf('data:') === 0 ? '' : st.imgUrl,
+      imgAlt: st.imgAlt, imgDecor: st.imgDecor,
+      imgNameLabel: st.imgName !== '' ? 'Selected file: ' + st.imgName : '',
+      onImgUrl: (e) => this.setState({ imgUrl: e.target.value, imgName: '', dialogErr: '' }),
+      onImgAlt: (e) => this.setState({ imgAlt: e.target.value, dialogErr: '' }),
+      onImgFile: (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        const fr = new FileReader();
+        fr.onload = () => this.setState({ imgUrl: String(fr.result), imgName: f.name, dialogErr: '' });
+        fr.readAsDataURL(f);
+        e.target.value = '';
+      },
+      toggleImgDecor: () => this.setState({ imgDecor: !st.imgDecor, dialogErr: '' }),
+      imgDecorBox: checkBox(st.imgDecor),
+      tRows: st.tRows, tCols: st.tCols, tHdr: st.tHdr,
+      onTRows: (e) => this.setState({ tRows: e.target.value, dialogErr: '' }),
+      onTCols: (e) => this.setState({ tCols: e.target.value, dialogErr: '' }),
+      toggleTHdr: () => this.setState({ tHdr: !st.tHdr }),
+      tHdrBox: checkBox(st.tHdr),
+      srcText: st.srcText,
+      onSrcText: (e) => this.setState({ srcText: e.target.value }),
+      specialChars, emojis, countRows, helpRows,
+      showWorkspace: st.view === 'workspace',
+      goWorkspace: () => this.goTo('workspace'),
+      navAgentsStyle: st.view === 'workspace' ? navOff : navOn,
+      navWorkspaceStyle: st.view === 'workspace' ? navOn : navOff,
+      ctxLabel, replaceLabel, toolbar, wsTabs,
+      showChat: st.wsTab === 'chat', showActions: st.wsTab === 'actions', showReview: st.wsTab === 'review',
+      noThread: st.thread.length === 0, hasThread: st.thread.length > 0,
+      thread, busy: st.busy, examples,
+      newChat: () => this.setState({ thread: [], busy: false }),
+      menuAgent: st.menu === 'agent', menuSource: st.menu === 'source',
+      closeMenu: () => this.setState({ menu: null }),
+      toggleAgentMenu: () => this.setState({ menu: st.menu === 'agent' ? null : 'agent' }),
+      toggleSourceMenu: () => this.setState({ menu: st.menu === 'source' ? null : 'source' }),
+      agentOptions, sourceGroups, sourceChips,
+      hasChips: st.wsAgent !== null || st.wsSources.length > 0,
+      hasWsAgent: st.wsAgent !== null,
+      wsAgentLabel: st.wsAgent || '',
+      clearAgent: () => this.setState({ wsAgent: null }),
+      onAttachFiles: (e) => {
+        const cur = this.state.wsSources;
+        const add = Array.from(e.target.files || []).map((f) => ({ id: 'up::' + f.name, name: f.name, kind: 'upload' })).filter((a) => !cur.some((c) => c.id === a.id));
+        this.setState({ wsSources: cur.concat(add) });
+        e.target.value = '';
+      },
+      comp: st.comp,
+      onComp: (e) => {
+        const v = e.target.value;
+        if (v.slice(-1) === '@') { this.setState({ comp: v.slice(0, -1), menu: 'agent' }); return; }
+        if (v.slice(-1) === '#') { this.setState({ comp: v.slice(0, -1), menu: 'source' }); return; }
+        this.setState({ comp: v });
+      },
+      onCompKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } },
+      send: () => this.send(),
+      quickActions,
+      hasResult: !!res,
+      resultBusy: !!res && !!res.busy,
+      resultReady: !!res && !res.busy,
+      resultTitle: res && res.title ? res.title : '',
+      resultAgent: res && res.agent ? res.agent : '',
+      resultMeta: res && res.meta ? res.meta : '',
+      resultBlocks: res && res.blocks ? mapB(res.blocks) : [],
+      resultReplace: () => this.insertHtml(resHtml(), true),
+      resultBelow: () => this.insertHtml(resHtml(), false),
+      resultDiscard: () => this.setState({ result: null }),
+      runReview: () => this.runReview(),
+      reviewButtonLabel: st.reviewBusy ? 'Reviewing…' : (st.reviewRan ? 'Run review again' : 'Run review'),
+      reviewRan: st.reviewRan,
+      reviewSummary: openCount + ' of ' + st.findings.length + (st.findings.length === 1 ? ' suggestion open' : ' suggestions open'),
+      findings,
+
+      showCreate: st.view === 'create',
+      goList: () => this.goTo('list'),
+      goCreate: () => this.goTo('create'),
+      createAgent: () => this.saveAgent('Active'),
+      saveDraft: () => this.saveAgent('Draft'),
+      rows, statusFilters,
+      query: st.query,
+      setQuery: (e) => this.setState({ query: e.target.value }),
+      empty: rows.length === 0,
+      countLabel: rows.length === 1 ? '1 agent' : rows.length + ' agents',
+      // fields
+      name: st.name, handle: st.handle,
+      instr: st.instr, when: st.when, inSpec: st.inSpec, outSpec: st.outSpec,
+      timeout: st.timeout, upTags: st.upTags,
+      onName: f('name'),
+      onHandle: (e) => this.setState({ handle: e.target.value.toLowerCase().replace(/[^a-z0-9_-]+/g, '-') }),
+      onInstr: f('instr'), onWhen: f('when'),
+      onIn: f('inSpec'), onOut: f('outSpec'),
+      onTimeout: f('timeout'), onUpTags: f('upTags'),
+      // sections
+      callOptions, handoffs, modelName, tagFilters, kbs, selectedKbs,
+      agentType: st.agentType,
+      onType: (e) => this.setState({ agentType: e.target.value }),
+      typeLabel: st.agentType !== '' ? st.agentType : 'Not set',
+      onModel: (e) => this.setState({ model: e.target.value }),
+      modelNote: modelDefs.find((m) => m.id === st.model).note,
+      kbOpen: st.kbOpen,
+      toggleKb: () => this.setState({ kbOpen: !st.kbOpen }),
+      browseLabel: st.kbOpen ? 'Hide knowledge bases' : 'Browse knowledge bases',
+      noKbs: kbs.length === 0,
+      hasUploads: uc > 0,
+      nothingAdded: n === 0 && uc === 0,
+      // uploads
+      uploads,
+      noUploads: uc === 0,
+      onFiles: (e) => { this.addFiles(e.target.files); e.target.value = ''; },
+      onDragOver: (e) => { e.preventDefault(); },
+      onDrop: (e) => { e.preventDefault(); this.addFiles(e.dataTransfer && e.dataTransfer.files); },
+      // grounding switch
+      strict: st.strict,
+      toggleStrict: () => this.setState({ strict: !st.strict }),
+      switchStyle: 'flex-shrink: 0; width: 56px; height: 44px; padding: 0; border: none; background: transparent; cursor: pointer; position: relative',
+      knobStyle: 'position: absolute; top: 8px; left: 0; width: 56px; height: 28px; border-radius: 999px; display: block; background: ' + (st.strict ? accent : '#8C846F'),
+      thumbStyle: 'position: absolute; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; display: block; left: ' + (st.strict ? '31px' : '3px'),
+      // summary
+      titleLabel: st.name.trim() !== '' ? st.name : 'Untitled agent',
+      handleLabel: st.handle !== '' ? '@' + st.handle : 'No call handle yet',
+      callableLabel,
+      handoffLabel: handNames.length ? handNames.join(', ') : 'No other agents',
+      hasSelection: n > 0,
+      kbCountLabel: n === 1 ? '1 base selected' : n + ' bases selected',
+      uploadCountLabel: uc === 1 ? '1 file uploaded' : uc + ' files uploaded',
+      groundingLabel: st.strict
+        ? 'Strict: answers come only from the knowledge above.'
+        : 'Flexible: the agent may also use the model\u2019s general knowledge.',
+      // readiness
+      checklist,
+      doneLabel: doneCount + ' of ' + req.length,
+      ready,
+      notReady: !ready
+    };
+  }
+}
+</script>
+</body>
+</html>
