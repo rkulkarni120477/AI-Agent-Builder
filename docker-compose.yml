@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_PROFILE=${AWS_PROFILE}
+      - BEDROCK_MODEL_OPUS=${BEDROCK_MODEL_OPUS}
+      - BEDROCK_MODEL_SONNET=${BEDROCK_MODEL_SONNET}
+      - BEDROCK_MODEL_HAIKU=${BEDROCK_MODEL_HAIKU}
+      - BEDROCK_EMBEDDING_MODEL=${BEDROCK_EMBEDDING_MODEL}
+      - BEDROCK_MAX_CONCURRENCY=${BEDROCK_MAX_CONCURRENCY:-8}
+      - DATABASE_URL=${DATABASE_URL}
+      - VECTOR_DIR=${VECTOR_DIR}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./data:/app/data
+    depends_on:
+      - frontend
+    networks:
+      - agent-studio
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+    depends_on:
+      - backend
+    networks:
+      - agent-studio
+
+networks:
+  agent-studio:
+    driver: bridge

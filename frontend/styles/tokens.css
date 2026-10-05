@@ -1,0 +1,217 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap');
+
+:root {
+  /* Backgrounds */
+  --bg: #F3EFE6;
+  --sidebar: #EBE6DA;
+  --surface: #FFFFFF;
+  --panel: #FBF9F4;
+  --chip: #EFEADD;
+
+  /* Text */
+  --text: #1F1D18;
+  --text-2: #3D392F;
+  --text-3: #4A463C;
+  --text-4: #5B564B;
+  --muted: #8C846F;
+
+  /* Borders */
+  --border: #DAD3C3;
+  --border-strong: #C9C1AE;
+  --divider: #E6E0D2;
+
+  /* Accent (teal, default) */
+  --accent: #0E5A57;
+  --accent-hover: #093F3D;
+  --accent-soft: #E4EDEA;
+
+  /* Required/Error */
+  --required: #9B2C1F;
+
+  /* Status badges */
+  --status-active-bg: #DCEBE3;
+  --status-active-text: #0B4A2E;
+  --status-active-dot: #1E8A55;
+
+  --status-draft-bg: #EFEADD;
+  --status-draft-text: #3D392F;
+  --status-draft-dot: #8C846F;
+
+  --status-paused-bg: #F6E3CF;
+  --status-paused-text: #6B3A0B;
+  --status-paused-dot: #C7761E;
+
+  /* Typography */
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: Consolas, Menlo, monospace;
+
+  /* Sizes */
+  --sidebar-width: 232px;
+  --panel-clamp: clamp(340px, 31vw, 440px);
+  --h1-size: 34px;
+  --h1-weight: 600;
+  --h1-letter-spacing: -0.02em;
+  --h2-size: 22px;
+  --h2-weight: 600;
+  --body-size: 14px;
+  --editor-body-size: 17px;
+  --editor-body-line-height: 1.75;
+
+  /* Radius */
+  --radius-checkbox: 6px;
+  --radius-icon: 8px;
+  --radius-button: 10px;
+  --radius-card: 12px;
+  --radius-model-card: 14px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-menu: 0 8px 24px rgba(31, 29, 24, 0.16);
+  --shadow-dialog: 0 10px 28px rgba(31, 29, 24, 0.18);
+
+  /* Focus ring */
+  --focus-ring: 3px solid var(--accent);
+  --focus-offset: 2px;
+}
+
+/* Support alternate accent colors */
+:root[data-accent="rust"] {
+  --accent: #7A3B12;
+  --accent-hover: #5a2a0a;
+  --accent-soft: #f5e6d3;
+}
+
+:root[data-accent="purple"] {
+  --accent: #3B3A8C;
+  --accent-hover: #2a2a6c;
+  --accent-soft: #e3e2f0;
+}
+
+:root[data-accent="rose"] {
+  --accent: #8A1F3D;
+  --accent-hover: #6a1a30;
+  --accent-soft: #f5e1e8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* Typography */
+h1 {
+  font-family: var(--font-serif);
+  font-size: var(--h1-size);
+  font-weight: var(--h1-weight);
+  letter-spacing: var(--h1-letter-spacing);
+  line-height: 1.1;
+  margin: 0 0 16px 0;
+}
+
+h2 {
+  font-family: var(--font-serif);
+  font-size: var(--h2-size);
+  font-weight: var(--h2-weight);
+  line-height: 1.3;
+  margin: 28px 0 8px 0;
+}
+
+h3 {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 20px 0 6px 0;
+}
+
+p {
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+/* Editor text */
+.editor-body {
+  font-size: var(--editor-body-size);
+  line-height: var(--editor-body-line-height);
+}
+
+/* Code */
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+/* Focus styles */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Remove default button styles */
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+/* Remove default input styles */
+input,
+textarea,
+select {
+  font-family: inherit;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  padding: 0.5rem;
+  border-radius: var(--radius-button);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Utility classes */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.container-fixed {
+  max-width: 1440px;
+  margin: 0 auto;
+}
