@@ -2,14 +2,14 @@
 
 ## Current Phase
 
-**Phase 5: Quick Actions & Review** (starting)
-- [ ] Quick action buttons on agents (run, test, etc)
-- [ ] Agent output review/edit interface
-- [ ] Insertion of results into workspace
-- [ ] Result formatting (blocks, tables, code)
-- [ ] Approval/rejection workflow
-- [ ] Version tracking on insertions
-- [ ] Collaboration review features
+**Phase 6: Runs, Settings, Hardening** (starting)
+- [ ] Runs history dashboard with filtering
+- [ ] Agent performance metrics and analytics
+- [ ] Workspace settings and collaboration
+- [ ] User management and permissions
+- [ ] API rate limiting and throttling
+- [ ] Database query optimization
+- [ ] Error logging and monitoring setup
 
 ## Tech Stack (Fixed)
 
@@ -71,16 +71,16 @@
 - **LangSmith Tracing**: Optional behind env flag (`LANGSMITH_API_KEY`)?
 - **Rate Limiting**: Per-user, per-model, or global? Decision: Per-user initially; per-model in Phase 6.
 
-## What Blocks Phase 5
+## What Blocks Phase 6
 
-- [ ] Output formatting to TipTap block structure
-- [ ] Quick action UI with result preview
-- [ ] Insert button stores result in workspace
-- [ ] Review workflow tracks approvals
-- [ ] Result versioning and rollback
-- [ ] Collaboration features (comments, suggestions)
-- [ ] Export formatted results to multiple formats
-- [ ] Agent result templates per agent type
+- [ ] Runs dashboard with search and filtering
+- [ ] Agent metrics (success rate, avg tokens, latency)
+- [ ] Workspace sharing and collaboration settings
+- [ ] User role-based access control (RBAC)
+- [ ] Rate limiting per user/agent
+- [ ] Database indexes on frequently queried fields
+- [ ] Structured error logging with stack traces
+- [ ] Prometheus metrics export for monitoring
 
 ## Phases Checklist
 
@@ -89,5 +89,5 @@
 - [x] 2. Knowledge & Ingestion
 - [x] 3. Workspace Editor
 - [x] 4. Agent Runtime & Chat
-- [ ] 5. Quick Actions & Review ← **current**
-- [ ] 6. Runs, Settings, Hardening
+- [x] 5. Quick Actions & Review
+- [ ] 6. Runs, Settings, Hardening ← **current**
