@@ -151,8 +151,8 @@ export default function AgentsPage() {
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-lg bg-accent bg-opacity-10 flex items-center justify-center flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent">
-                          <circle cx="12" cy="12" r="3" />
-                          <path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3" />
+                          <rect x="4" y="2" width="16" height="16" rx="2" />
+                          <path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01M4 22h16" />
                         </svg>
                       </div>
                       <div className="min-w-0">
@@ -166,12 +166,12 @@ export default function AgentsPage() {
                     <div className="text-sm text-text">{agent.model?.display_name}</div>
 
                     {/* Knowledge */}
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {agent.knowledge_bases && agent.knowledge_bases.length > 0 ? (
-                        agent.knowledge_bases.slice(0, 2).map((kb, idx) => (
+                        agent.knowledge_bases.map((kb, idx) => (
                           <span
                             key={idx}
-                            className="px-2.5 py-1 rounded-full bg-panel text-text-2 text-xs font-500 whitespace-nowrap"
+                            className="px-3 py-1.5 rounded-full bg-sidebar text-text-2 text-xs font-500 whitespace-nowrap border border-border"
                           >
                             {kb}
                           </span>

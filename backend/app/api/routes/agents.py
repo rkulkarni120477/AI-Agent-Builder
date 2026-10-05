@@ -46,7 +46,7 @@ async def list_agents(
             )
         )
 
-    query = query.options(selectinload(Agent.model)).order_by(Agent.updated_at.desc())
+    query = query.options(selectinload(Agent.model), selectinload(Agent.knowledge_bases)).order_by(Agent.updated_at.desc())
     result = await session.execute(query)
     agents = result.scalars().all()
 
@@ -73,6 +73,7 @@ async def list_agents(
             version=a.version,
             created_at=a.created_at.isoformat(),
             updated_at=a.updated_at.isoformat(),
+            knowledge_bases=[kb.name for kb in a.knowledge_bases] if a.knowledge_bases else [],
         )
         for a in agents
     ]
