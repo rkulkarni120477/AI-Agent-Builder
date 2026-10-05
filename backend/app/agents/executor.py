@@ -1,6 +1,7 @@
 """Agent executor using LangGraph."""
 
 import logging
+import uuid
 from typing import Optional, AsyncGenerator
 
 from langchain_core.messages import HumanMessage, AIMessage
@@ -133,7 +134,15 @@ Important: Only cite information from the provided knowledge base. If the knowle
 
         except Exception as e:
             logger.error(f"Agent execution failed: {e}")
-            raise
+            text = str(e)
+            if "does not support chat" in text or "ValidationException" in text:
+                text = (
+                    f"Model ID '{agent.model.bedrock_model_id}' is not a valid AWS Bedrock model. "
+                    "Set a valid Bedrock model ID for this model in Models."
+                )
+            elif "credentials" in text.lower():
+                text = "AWS credentials not found. Set AWS_PROFILE or AWS credentials for the backend."
+            raise RuntimeError(text) from e
 
     async def save_run(
         self,
@@ -148,6 +157,7 @@ Important: Only cite information from the provided knowledge base. If the knowle
     ) -> Run:
         """Save agent run to database."""
         run = Run(
+            id=str(uuid.uuid4()),
             workspace_id=workspace_id,
             agent_id=agent_id,
             input_text=input_text,
@@ -157,6 +167,7 @@ Important: Only cite information from the provided knowledge base. If the knowle
             tokens_used=tokens_used,
         )
         session.add(run)
+        await session.flush()
 
         # Add messages
         session.add(Message(

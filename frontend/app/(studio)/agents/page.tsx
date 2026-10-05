@@ -6,6 +6,31 @@ import { useRouter } from 'next/navigation'
 import { useState, useMemo } from 'react'
 import { fetchAgents } from '@/lib/api'
 
+const statusStyles: Record<string, { backgroundColor: string; color: string; dotColor: string }> = {
+  active: {
+    backgroundColor: 'var(--status-active-bg)',
+    color: 'var(--status-active-text)',
+    dotColor: 'var(--status-active-dot)',
+  },
+  draft: {
+    backgroundColor: 'var(--status-draft-bg)',
+    color: 'var(--status-draft-text)',
+    dotColor: 'var(--status-draft-dot)',
+  },
+  paused: {
+    backgroundColor: 'var(--status-paused-bg)',
+    color: 'var(--status-paused-text)',
+    dotColor: 'var(--status-paused-dot)',
+  },
+}
+
+const getStatusStyle = (status: string) =>
+  statusStyles[status.toLowerCase()] ?? {
+    backgroundColor: 'var(--secondary-light)',
+    color: 'var(--secondary)',
+    dotColor: 'var(--secondary)',
+  }
+
 export default function AgentsPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
@@ -166,12 +191,12 @@ export default function AgentsPage() {
                     <div className="text-sm text-text">{agent.model?.display_name}</div>
 
                     {/* Knowledge */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col items-start gap-2">
                       {agent.knowledge_bases && agent.knowledge_bases.length > 0 ? (
                         agent.knowledge_bases.map((kb, idx) => (
                           <span
                             key={idx}
-                            className="px-3 py-1.5 rounded-full bg-yellow-50 text-text-2 text-xs font-500 whitespace-nowrap border border-yellow-200"
+                            className="inline-flex items-center h-8 px-3 rounded-pill bg-chip text-text text-sm font-500 whitespace-nowrap border border-border"
                           >
                             {kb}
                           </span>
@@ -182,9 +207,18 @@ export default function AgentsPage() {
                     </div>
 
                     {/* Status */}
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-success" />
-                      <span className="text-sm text-text capitalize">{agent.status}</span>
+                    <div
+                      className="inline-flex h-7 w-fit items-center gap-2 rounded-pill px-3 text-sm font-600"
+                      style={{
+                        backgroundColor: getStatusStyle(agent.status).backgroundColor,
+                        color: getStatusStyle(agent.status).color,
+                      }}
+                    >
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: getStatusStyle(agent.status).dotColor }}
+                      />
+                      <span className="capitalize">{agent.status}</span>
                     </div>
 
                     {/* Updated */}

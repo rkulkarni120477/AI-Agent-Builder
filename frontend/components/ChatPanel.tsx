@@ -4,7 +4,20 @@ import { useQuery } from '@tanstack/react-query'
 import { useState, useRef, useEffect } from 'react'
 import { fetchRuns, invokeAgent } from '@/lib/chat-api'
 import { fetchAgents } from '@/lib/api'
+import { fetchKnowledgeBases } from '@/lib/kb-api'
 import { ResultActionsPanel } from './ResultActionsPanel'
+
+const EXAMPLES = [
+  { text: 'Align this lesson to NGSS middle school standards', agent: 'Standards Aligner', kb: 'Academic Standards', label: 'NGSS Middle School Physical Science.pdf' },
+  { text: 'Tag this lesson with topics, standards and skills', agent: 'Content Tagger', kb: 'Skills Taxonomies', label: 'Skills Taxonomies' },
+  { text: 'Extract the skills students practice in this activity', agent: 'Skill Extractor' },
+  { text: 'Find skill gaps against the Science Practices Skills Map', agent: 'Skill Gap Analyzer', kb: 'Skills Taxonomies', label: 'Science Practices Skills Map.xlsx' },
+  { text: 'Write three practice questions for the exit ticket', agent: 'Content Creator', kb: 'Style and Accessibility Guides', label: 'Editorial Style Guide.pdf' },
+  { text: 'Draft a four-week unit outline from this lesson', agent: 'Curriculum Designer', kb: 'Curriculum Library', label: 'Grade 7 Science Scope and Sequence.docx' },
+  { text: 'Turn this lesson into a 30-minute micro-course', agent: 'Micro-course Builder' },
+]
+
+type Tab = 'chat' | 'actions' | 'review'
 
 interface ChatPanelProps {
   workspace_id: string
@@ -19,6 +32,9 @@ interface Message {
 }
 
 export function ChatPanel({ workspace_id }: ChatPanelProps) {
+  const [tab, setTab] = useState<Tab>('chat')
+  const [selectedKbIds, setSelectedKbIds] = useState<string[]>([])
+  const [menu, setMenu] = useState<'agent' | 'kb' | null>(null)
   const [selectedAgentId, setSelectedAgentId] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -31,6 +47,19 @@ export function ChatPanel({ workspace_id }: ChatPanelProps) {
     queryKey: ['agents'],
     queryFn: () => fetchAgents(),
   })
+
+  const { data: kbs = [] } = useQuery({
+    queryKey: ['knowledge-bases'],
+    queryFn: () => fetchKnowledgeBases(),
+  })
+
+  const loadExample = (ex: (typeof EXAMPLES)[number]) => {
+    const agent = agents.find((a) => a.name === ex.agent)
+    const kb = kbs.find((k) => k.name === ex.kb)
+    if (agent) setSelectedAgentId(agent.id)
+    setSelectedKbIds(kb ? [kb.id] : [])
+    setInputValue(ex.text)
+  }
 
   // Fetch runs
   const { data: runs = [] } = useQuery({
@@ -89,12 +118,16 @@ export function ChatPanel({ workspace_id }: ChatPanelProps) {
       const responseIterator = await invokeAgent(
         selectedAgentId,
         workspace_id,
-        inputValue
+        inputValue,
+        selectedKbIds.length ? selectedKbIds : undefined
       )
 
       let fullContent = ''
       for await (const chunk of responseIterator) {
-        if (chunk && chunk !== '[ERROR]') {
+        if (chunk && chunk.startsWith('[ERROR]')) {
+          throw new Error(chunk.slice(7).trim() || 'Agent failed')
+        }
+        if (chunk) {
           fullContent += chunk
           setMessages((prev) => {
             const newMessages = [...prev]
@@ -139,94 +172,183 @@ export function ChatPanel({ workspace_id }: ChatPanelProps) {
     }
   }
 
+  const selectedAgent = agents.find((a) => a.id === selectedAgentId)
+  const selectedKbs = kbs.filter((k) => selectedKbIds.includes(k.id))
+  const canSend = !!selectedAgentId && !!inputValue.trim() && !isLoading
+
   return (
     <div className="flex flex-col h-full bg-bg">
-      {/* Agent selector */}
-      <div className="border-b border-border bg-surface px-4 py-3">
-        <select
-          value={selectedAgentId}
-          onChange={(e) => {
-            setSelectedAgentId(e.target.value)
-            setMessages([])
-            setCurrentRun(null)
-          }}
-          className="w-full px-3 py-2 rounded-input border border-border bg-surface text-text text-sm focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">Select an agent...</option>
-          {agents.map((agent) => (
-            <option key={agent.id} value={agent.id}>
-              {agent.name}
-            </option>
+      <div className="px-5 pt-4 pb-3">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-accent text-lg">✦</span>
+          <span className="font-serif text-lg font-600 text-text">Assistant</span>
+        </div>
+        <div className="flex rounded-lg bg-chip p-1">
+          {([['chat', 'Chat'], ['actions', 'Quick actions'], ['review', 'Review']] as [Tab, string][]).map(([k, l]) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setTab(k)}
+              className={`flex-1 rounded-md py-1.5 text-sm font-500 ${
+                tab === k ? 'bg-white text-text shadow-sm' : 'text-text-2 hover:text-text'
+              }`}
+            >
+              {l}
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
-      {/* Messages list */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        {messages.length === 0 && selectedAgentId && (
-          <div className="flex items-center justify-center h-full text-center">
-            <p className="text-text-3">Start a conversation with the selected agent</p>
+      <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-3">
+        {tab === 'chat' && messages.length === 0 && (
+          <div>
+            <div className="font-serif text-lg font-600 text-text">Example commands</div>
+            <p className="mt-1 mb-3 text-sm text-text-2">
+              Pick one to load it into the message box with its agent and knowledge, then send. You can also type @ to
+              call an agent or # to attach knowledge.
+            </p>
+            <div className="space-y-2">
+              {EXAMPLES.map((ex) => (
+                <button
+                  key={ex.text}
+                  type="button"
+                  onClick={() => loadExample(ex)}
+                  className="block w-full rounded-xl border border-border bg-white px-4 py-3 text-left hover:border-accent"
+                >
+                  <div className="text-sm font-500 text-text">{ex.text}</div>
+                  <div className="mt-1 text-xs text-accent">
+                    @ {ex.agent}
+                    {ex.label ? ` · # ${ex.label}` : ''}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-xs px-4 py-2 rounded-lg ${
-                message.role === 'user'
-                  ? 'bg-accent text-white'
-                  : 'bg-panel text-text'
-              }`}
-            >
-              <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-              {message.is_streaming && (
-                <div className="flex items-center gap-1 mt-2">
-                  <div className="w-2 h-2 bg-current rounded-full animate-pulse" />
-                  <span className="text-xs opacity-70">Streaming...</span>
-                </div>
-              )}
+        {tab === 'chat' &&
+          messages.map((message) => (
+            <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div
+                className={`max-w-[85%] px-4 py-2 rounded-lg ${
+                  message.role === 'user' ? 'bg-accent text-white' : 'bg-panel text-text'
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                {message.is_streaming && (
+                  <div className="flex items-center gap-1 mt-2">
+                    <div className="w-2 h-2 bg-current rounded-full animate-pulse" />
+                    <span className="text-xs opacity-70">Streaming...</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
         <div ref={messagesEndRef} />
+
+        {tab === 'actions' &&
+          (currentRun && currentRun.status === 'completed' && currentRun.output_text ? (
+            <ResultActionsPanel
+              run={currentRun}
+              workspace_id={workspace_id}
+              onInserted={() => setCurrentRun(null)}
+            />
+          ) : (
+            <p className="text-sm text-text-2">Run an agent in Chat to get insert and copy actions for its result.</p>
+          ))}
+
+        {tab === 'review' && <p className="text-sm text-text-2">No review suggestions yet.</p>}
       </div>
 
-      {/* Quick actions panel */}
-      {currentRun && currentRun.status === 'completed' && currentRun.output_text && (
-        <ResultActionsPanel
-          run={currentRun}
-          workspace_id={workspace_id}
-          onInserted={() => {
-            setCurrentRun(null)
-          }}
-        />
-      )}
-
-      {/* Input form */}
       <form
         onSubmit={handleSendMessage}
-        className="border-t border-border bg-surface px-4 py-3"
+        className="relative border-t border-border bg-surface px-5 py-3"
       >
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Ask the agent..."
-            disabled={!selectedAgentId || isLoading}
-            className="flex-1 px-3 py-2 rounded-input border border-border bg-surface text-text placeholder-text-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
-          />
+        {(selectedAgent || selectedKbs.length > 0) && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {selectedAgent && (
+              <span className="rounded-pill bg-chip px-2.5 py-0.5 text-xs font-500 text-accent">@ {selectedAgent.name}</span>
+            )}
+            {selectedKbs.map((k) => (
+              <span key={k.id} className="rounded-pill bg-chip px-2.5 py-0.5 text-xs font-500 text-accent">
+                # {k.name}
+              </span>
+            ))}
+          </div>
+        )}
+        <textarea
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              if (canSend) handleSendMessage(e as unknown as React.FormEvent)
+            }
+          }}
+          placeholder="Ask about this document. Type @ for an agent, # for knowledge."
+          className="h-[84px] w-full resize-none rounded-[10px] border border-[#C9C1AE] bg-white px-3.5 py-2.5 text-[15px] text-text focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setMenu(menu === 'agent' ? null : 'agent')}
+            className="rounded-md border border-border bg-white px-2.5 py-1 text-sm text-text hover:bg-chip"
+          >
+            @ Agent
+          </button>
+          <button
+            type="button"
+            onClick={() => setMenu(menu === 'kb' ? null : 'kb')}
+            className="rounded-md border border-border bg-white px-2.5 py-1 text-sm text-text hover:bg-chip"
+          >
+            # Knowledge
+          </button>
           <button
             type="submit"
-            disabled={!selectedAgentId || isLoading || !inputValue.trim()}
-            className="px-3 py-2 rounded-button bg-accent text-white font-500 text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!canSend}
+            className="ml-auto rounded-md bg-accent px-4 py-1.5 text-sm font-500 text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Send
           </button>
         </div>
+
+        {menu && (
+          <div className="absolute bottom-full left-5 mb-1 max-h-56 w-64 overflow-y-auto rounded-lg border border-border bg-white p-1 shadow-lg">
+            {menu === 'agent'
+              ? agents.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedAgentId(a.id)
+                      setMenu(null)
+                    }}
+                    className={`block w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-chip ${
+                      a.id === selectedAgentId ? 'text-accent font-500' : 'text-text'
+                    }`}
+                  >
+                    {a.name}
+                  </button>
+                ))
+              : kbs.map((k) => (
+                  <button
+                    key={k.id}
+                    type="button"
+                    onClick={() =>
+                      setSelectedKbIds((prev) =>
+                        prev.includes(k.id) ? prev.filter((x) => x !== k.id) : [...prev, k.id]
+                      )
+                    }
+                    className={`block w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-chip ${
+                      selectedKbIds.includes(k.id) ? 'text-accent font-500' : 'text-text'
+                    }`}
+                  >
+                    {selectedKbIds.includes(k.id) ? '? ' : ''}
+                    {k.name}
+                  </button>
+                ))}
+          </div>
+        )}
       </form>
     </div>
   )

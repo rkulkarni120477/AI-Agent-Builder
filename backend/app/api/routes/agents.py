@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from datetime import datetime
 
 from app.core.db import get_session
-from app.models import Agent, Model
+from app.models import Agent, KnowledgeBase, Model
 from app.schemas.agent import (
     AgentCreate,
     AgentListResponse,
@@ -18,6 +18,22 @@ from app.schemas.agent import (
 )
 
 router = APIRouter(prefix="/agents", tags=["agents"])
+
+
+async def _load_knowledge_bases(session: AsyncSession, kb_ids: list[str]) -> list[KnowledgeBase]:
+    """Load active knowledge bases by id, rejecting unknown ids."""
+    unique_ids = list(dict.fromkeys(kb_ids))
+    if not unique_ids:
+        return []
+    result = await session.execute(
+        select(KnowledgeBase).where(
+            and_(KnowledgeBase.id.in_(unique_ids), KnowledgeBase.deleted_at.is_(None))
+        )
+    )
+    kbs = list(result.scalars().all())
+    if len(kbs) != len(unique_ids):
+        raise HTTPException(status_code=404, detail="Knowledge base not found")
+    return kbs
 
 
 @router.get("", response_model=list[AgentListResponse])
@@ -73,7 +89,7 @@ async def list_agents(
             version=a.version,
             created_at=a.created_at.isoformat(),
             updated_at=a.updated_at.isoformat(),
-            knowledge_bases=[kb.name for kb in a.knowledge_bases] if a.knowledge_bases else [],
+            knowledge_bases=[kb.name for kb in a.knowledge_bases if kb.deleted_at is None],
         )
         for a in agents
     ]
@@ -97,19 +113,23 @@ async def create_agent(
     if not model.scalars().first():
         raise HTTPException(status_code=404, detail="Model not found")
 
+    knowledge_bases = await _load_knowledge_bases(session, agent_in.knowledge_base_ids)
+
     agent = Agent(
-        **agent_in.model_dump(),
+        **agent_in.model_dump(exclude={"knowledge_base_ids", "status"}),
         owner_id="default-user",  # TODO: Get from auth context
-        status="draft",
+        status=agent_in.status,
     )
+    agent.knowledge_bases = knowledge_bases
     session.add(agent)
     await session.commit()
     await session.refresh(agent)
 
     return AgentResponse(
-        **agent.__dict__,
+        **{k: v for k, v in agent.__dict__.items() if k != "knowledge_bases"},
         created_at=agent.created_at.isoformat(),
         updated_at=agent.updated_at.isoformat(),
+        knowledge_base_ids=[kb.id for kb in knowledge_bases],
     )
 
 
@@ -138,7 +158,7 @@ async def get_agent(
     agent = await session.execute(
         select(Agent)
         .where(and_(Agent.id == agent_id, Agent.deleted_at.is_(None)))
-        .options(selectinload(Agent.model))
+        .options(selectinload(Agent.model), selectinload(Agent.knowledge_bases))
     )
     result = agent.scalars().first()
 
@@ -167,6 +187,7 @@ async def get_agent(
         created_at=result.created_at.isoformat(),
         updated_at=result.updated_at.isoformat(),
         deleted_at=result.deleted_at.isoformat() if result.deleted_at else None,
+        knowledge_base_ids=[kb.id for kb in result.knowledge_bases],
     )
 
 
@@ -178,7 +199,9 @@ async def update_agent(
 ):
     """Update agent."""
     agent = await session.execute(
-        select(Agent).where(and_(Agent.id == agent_id, Agent.deleted_at.is_(None)))
+        select(Agent)
+        .where(and_(Agent.id == agent_id, Agent.deleted_at.is_(None)))
+        .options(selectinload(Agent.knowledge_bases))
     )
     result = agent.scalars().first()
 
@@ -186,6 +209,9 @@ async def update_agent(
         raise HTTPException(status_code=404, detail="Agent not found")
 
     update_data = agent_in.model_dump(exclude_unset=True)
+    kb_ids = update_data.pop("knowledge_base_ids", None)
+    if kb_ids is not None:
+        result.knowledge_bases = await _load_knowledge_bases(session, kb_ids)
 
     # Check handle uniqueness if handle is being changed
     if "handle" in update_data and update_data["handle"] != result.handle:
@@ -201,11 +227,13 @@ async def update_agent(
     result.version += 1
     await session.commit()
     await session.refresh(result)
+    await session.refresh(result, attribute_names=["knowledge_bases"])
 
     return AgentResponse(
-        **result.__dict__,
+        **{k: v for k, v in result.__dict__.items() if k != "knowledge_bases"},
         created_at=result.created_at.isoformat(),
         updated_at=result.updated_at.isoformat(),
+        knowledge_base_ids=[kb.id for kb in result.knowledge_bases],
     )
 
 

@@ -32,6 +32,17 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
     },
   })
 
+  const renameMutation = useMutation({
+    mutationFn: (title: string) => updateWorkspace(params.id, { title }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['workspace', params.id], (old: any) => ({
+        ...old,
+        title: updated.title,
+      }))
+      queryClient.invalidateQueries({ queryKey: ['workspaces'] })
+    },
+  })
+
   // Initialize content from workspace
   useEffect(() => {
     if (workspace && !content) {
@@ -123,7 +134,29 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
       {/* Header with title and save status */}
       <div className="border-b border-border bg-surface px-8 py-4 flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-600 text-text truncate">{workspace.title}</h1>
+          <div className="text-xs font-500 uppercase tracking-wide text-text-3">Workspace</div>
+          <input
+            key={workspace.id}
+            defaultValue={workspace.title}
+            aria-label="Document name"
+            maxLength={200}
+            onBlur={(e) => {
+              const v = e.target.value.trim()
+              if (!v) {
+                e.target.value = workspace.title
+              } else if (v !== workspace.title) {
+                renameMutation.mutate(v)
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+              if (e.key === 'Escape') {
+                ;(e.target as HTMLInputElement).value = workspace.title
+                ;(e.target as HTMLInputElement).blur()
+              }
+            }}
+            className="w-full rounded-button border border-transparent bg-transparent px-1 -ml-1 font-serif text-2xl font-600 text-text truncate hover:border-border focus:border-accent focus:bg-bg focus:outline-none"
+          />
           <div className="flex items-center gap-2 mt-1">
             <p className="text-text-3 text-xs">v{workspace.version}</p>
             {isSaving && (
@@ -139,6 +172,9 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
         </div>
 
         <div className="flex items-center gap-2 ml-4">
+          <span className="rounded-pill border border-border bg-chip px-3 py-1 text-xs font-500 text-text-2">
+            Context: whole document
+          </span>
           <button
             onClick={() => setShowChat(!showChat)}
             className="px-3 py-1.5 text-sm font-500 rounded-button border border-border hover:bg-panel"
@@ -160,7 +196,7 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
       <div className="flex-1 min-h-0 flex">
         {/* Editor */}
         {content && (
-          <div className={`${showChat ? 'w-2/3' : 'w-full'} flex flex-col border-r border-border`}>
+          <div className={`${showChat ? 'w-2/3' : 'w-full'} flex flex-col border-r border-border bg-bg`}>
             <Editor value={content} onChange={handleContentChange} onSave={handleSave} />
           </div>
         )}

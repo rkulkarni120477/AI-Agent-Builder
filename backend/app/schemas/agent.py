@@ -44,7 +44,8 @@ class AgentBase(BaseModel):
 class AgentCreate(AgentBase):
     """Create agent request."""
 
-    pass
+    knowledge_base_ids: list[str] = []
+    status: str = Field(default="draft", pattern="^(draft|active)$")
 
 
 class AgentUpdate(BaseModel):
@@ -65,6 +66,7 @@ class AgentUpdate(BaseModel):
     strict_grounding: Optional[bool] = None
     guardrail_id: Optional[str] = None
     guardrail_version: Optional[str] = None
+    knowledge_base_ids: Optional[list[str]] = None
 
 
 class AgentResponse(AgentBase):
@@ -76,6 +78,7 @@ class AgentResponse(AgentBase):
     created_at: str
     updated_at: str
     deleted_at: Optional[str] = None
+    knowledge_base_ids: list[str] = []
 
     model_config = {"from_attributes": True}
 

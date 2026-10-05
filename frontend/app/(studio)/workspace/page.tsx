@@ -2,16 +2,47 @@
 
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
-import { useState } from 'react'
-import { fetchWorkspaces } from '@/lib/workspace-api'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createWorkspace, fetchWorkspaces } from '@/lib/workspace-api'
 
 export default function WorkspacePage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+  const [showList, setShowList] = useState(false)
+  const [ready, setReady] = useState(false)
 
   const { data: workspaces = [], isLoading, error } = useQuery({
     queryKey: ['workspaces', searchQuery],
     queryFn: () => fetchWorkspaces(searchQuery),
   })
+
+  useEffect(() => {
+    setShowList(new URLSearchParams(window.location.search).has('list'))
+    setReady(true)
+  }, [])
+
+  const redirecting = ready && !showList && !error && !searchQuery
+
+  // Open the latest document, or create a blank one when none exist
+  useEffect(() => {
+    if (!redirecting || isLoading) return
+    if (workspaces.length > 0) {
+      router.replace(`/workspace/${workspaces[0].id}`)
+    } else {
+      createWorkspace({ title: 'Untitled document' })
+        .then((w) => router.replace(`/workspace/${w.id}`))
+        .catch(() => {})
+    }
+  }, [redirecting, isLoading, workspaces, router])
+
+  if (redirecting) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-bg">
+        <div className="w-8 h-8 rounded-full border-2 border-border border-t-accent animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-screen bg-bg">

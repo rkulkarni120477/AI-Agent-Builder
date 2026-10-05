@@ -1,12 +1,14 @@
-'use client'
+﻿'use client'
 
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { agentSchema, type AgentFormData } from '@/lib/schemas'
-import { createAgent, updateAgent, fetchModels, checkHandleAvailability, type Agent, type Model } from '@/lib/api'
+import { createAgent, updateAgent, fetchModels, checkHandleAvailability, type Agent } from '@/lib/api'
+import { fetchKnowledgeBases } from '@/lib/kb-api'
 
 const AGENT_TYPES = [
   'Standard alignment',
@@ -19,12 +21,43 @@ const AGENT_TYPES = [
   'Custom',
 ]
 
-const STEPS = [
-  { number: 1, title: 'Basics', description: 'Name, type, and handle' },
-  { number: 2, title: 'Behavior', description: 'Instructions and rules' },
-  { number: 3, title: 'Advanced', description: 'Model and handoffs' },
-  { number: 4, title: 'Knowledge', description: 'Add content' },
-]
+const CALL_OPTIONS = [
+  { value: 'any', label: 'Any agent', note: 'Discoverable by every agent on the platform' },
+  { value: 'approved', label: 'Approved agents', note: 'Only agents you approve can call it' },
+  { value: 'orchestrator', label: 'Orchestrator only', note: 'Reachable only through the orchestrator' },
+] as const
+
+const CALLED_BY_LABEL: Record<string, string> = {
+  any: 'Any agent',
+  approved: 'Approved agents',
+  orchestrator: 'Orchestrator only',
+}
+
+const inputCls =
+  'w-full h-12 px-3.5 rounded-[10px] border border-[#C9C1AE] bg-white text-base text-text placeholder:text-text-3 focus:outline-none focus:ring-2 focus:ring-accent'
+const textareaCls =
+  'w-full px-3.5 py-3 rounded-[10px] border border-[#C9C1AE] bg-white text-base leading-6 text-text placeholder:text-text-3 focus:outline-none focus:ring-2 focus:ring-accent resize-none'
+const labelCls = 'text-sm font-600 text-text'
+
+function Req() {
+  return <span className="text-[#9B2C1F]">*</span>
+}
+
+function SectionHeader({ n, title, aside }: { n: number; title: string; aside?: React.ReactNode }) {
+  return (
+    <div className="h-8 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="w-7 h-7 rounded-full bg-[#1F1D18] text-white text-sm font-600 flex items-center justify-center">
+          {n}
+        </div>
+        <h2 className="font-serif text-[22px] font-600 text-text">{title}</h2>
+      </div>
+      {aside}
+    </div>
+  )
+}
+
+const sectionCls = 'bg-[#FBF9F4] border border-[#DAD3C3] rounded-2xl p-7 flex flex-col gap-5'
 
 interface AgentFormProps {
   agent?: Agent
@@ -33,15 +66,15 @@ interface AgentFormProps {
 
 export function AgentFormMultiStep({ agent, isEditing = false }: AgentFormProps) {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [handleCheckTimeout, setHandleCheckTimeout] = useState<NodeJS.Timeout>()
   const [handleAvailable, setHandleAvailable] = useState<boolean | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const {
     control,
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting, isValid },
   } = useForm<AgentFormData>({
     resolver: zodResolver(agentSchema),
@@ -58,391 +91,419 @@ export function AgentFormMultiStep({ agent, isEditing = false }: AgentFormProps)
           callable_by: (agent as any).callable_by || 'any',
           timeout_seconds: (agent as any).timeout_seconds || 60,
           model_id: agent.model?.id || '',
-          temperature: (agent as any).temperature || 1.0,
-          strict_grounding: (agent as any).strict_grounding || true,
+          temperature: (agent as any).temperature ?? 1.0,
+          strict_grounding: (agent as any).strict_grounding ?? true,
+          knowledge_base_ids: agent.knowledge_base_ids || [],
         }
       : {
           callable_by: 'any',
           timeout_seconds: 60,
           temperature: 1.0,
           strict_grounding: true,
+          knowledge_base_ids: [],
         },
     mode: 'onChange',
   })
 
-  const { data: models = [] } = useQuery({
-    queryKey: ['models'],
-    queryFn: fetchModels,
+  const { data: models = [] } = useQuery({ queryKey: ['models'], queryFn: fetchModels })
+  const { data: knowledgeBases = [] } = useQuery({
+    queryKey: ['knowledge-bases'],
+    queryFn: () => fetchKnowledgeBases(),
   })
 
   const formValues = watch()
-
   const handleValue = watch('handle')
+  const modelId = watch('model_id')
+  const kbIds = watch('knowledge_base_ids') ?? []
+
+  // Default to the recommended Sonnet model when creating a new agent
+  useEffect(() => {
+    if (isEditing || modelId || models.length === 0) return
+    const preferred = models.find((m) => /sonnet/i.test(m.display_name)) ?? models[0]
+    setValue('model_id', preferred.id, { shouldValidate: true })
+  }, [models, modelId, isEditing, setValue])
+
   useEffect(() => {
     if (!handleValue || (isEditing && handleValue === (agent as any)?.handle)) {
       setHandleAvailable(null)
       return
     }
-
-    clearTimeout(handleCheckTimeout)
     const timeout = setTimeout(async () => {
       try {
-        const available = await checkHandleAvailability(handleValue)
-        setHandleAvailable(available)
+        setHandleAvailable(await checkHandleAvailability(handleValue))
       } catch {
         setHandleAvailable(null)
       }
     }, 300)
-
-    setHandleCheckTimeout(timeout)
     return () => clearTimeout(timeout)
-  }, [handleValue, agent, isEditing, handleCheckTimeout])
+  }, [handleValue, agent, isEditing])
 
-  const createMutation = useMutation({
-    mutationFn: async (data: AgentFormData) => createAgent(data),
-    onSuccess: (newAgent) => router.push(`/agents/${newAgent.id}`),
-  })
+  const selectedModel = models.find((m) => m.id === modelId)
+  const selectedKbs = knowledgeBases.filter((kb) => kbIds.includes(kb.id))
+  const handleTaken = handleAvailable === false
 
-  const updateMutation = useMutation({
-    mutationFn: async (data: AgentFormData) => {
-      if (!agent?.id) throw new Error('Agent ID is required')
-      return updateAgent(agent.id, data)
+  const saveMutation = useMutation({
+    mutationFn: async ({ data, status }: { data: AgentFormData; status: 'draft' | 'active' }) => {
+      if (isEditing) {
+        if (!agent?.id) throw new Error('Agent ID is required')
+        return updateAgent(agent.id, data)
+      }
+      return createAgent({ ...data, status })
     },
-    onSuccess: () => router.push(`/agents/${agent?.id}`),
+    onSuccess: (saved) => router.push(`/agents/${saved.id}`),
+    onError: (e: Error) => setError(e.message),
   })
 
-  const onSubmit = async (data: AgentFormData) => {
-    if (isEditing) {
-      updateMutation.mutate(data)
-    } else {
-      createMutation.mutate(data)
-    }
-  }
+  const submitAs = (status: 'draft' | 'active') =>
+    handleSubmit((data) => {
+      setError(null)
+      saveMutation.mutate({ data, status })
+    })
+
+  const canSubmit = isValid && !handleTaken && !isSubmitting && !saveMutation.isPending
+
+  const requiredDetails = [
+    { label: 'Agent name', filled: !!formValues.name },
+    { label: 'Call handle', filled: !!formValues.handle && !handleTaken },
+    { label: 'Agent type', filled: !!formValues.type },
+    { label: 'Instructions', filled: !!formValues.instructions },
+  ]
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full bg-bg">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Step Indicator */}
-        <div className="bg-surface border-b border-border px-8 py-6">
-          <div className="flex items-center gap-2 mb-6">
-            {STEPS.map((step, idx) => (
-              <div key={step.number} className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(step.number)}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center font-500 text-sm transition-colors ${
-                    currentStep >= step.number
-                      ? 'bg-accent text-white'
-                      : 'bg-border text-text-3'
-                  }`}
-                >
-                  {currentStep > step.number ? '✓' : step.number}
-                </button>
-                {idx < STEPS.length - 1 && (
-                  <div className={`w-8 h-0.5 ${currentStep > step.number ? 'bg-accent' : 'bg-border'}`} />
-                )}
-              </div>
-            ))}
+    <form onSubmit={submitAs('active')} className="min-h-full bg-bg">
+      <header className="flex items-center justify-between px-10 pt-7 pb-6 border-b border-[#DAD3C3]">
+        <div className="flex flex-col gap-1.5">
+          <div className="text-sm text-text-2">
+            <Link href="/agents" className="font-600 text-accent underline">
+              Agents
+            </Link>{' '}
+            / {isEditing ? 'Edit agent' : 'New agent'}
           </div>
-          <div>
-            <h2 className="text-xl font-600 text-text">{STEPS[currentStep - 1].title}</h2>
-            <p className="text-text-3 text-sm mt-1">{STEPS[currentStep - 1].description}</p>
-          </div>
+          <h1 className="font-serif text-[34px] leading-[37px] font-600 tracking-tight text-text">
+            {isEditing ? 'Edit agent' : 'Create an agent'}
+          </h1>
         </div>
-
-        {/* Form Content */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
-          <div className="max-w-xl space-y-6">
-            {/* Step 1: Basics */}
-            {currentStep === 1 && (
-              <>
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">Agent name *</label>
-                  <input
-                    {...register('name')}
-                    placeholder="e.g., Standards Aligner"
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text placeholder-text-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  />
-                  {errors.name && <p className="text-error text-xs mt-2">{errors.name.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">Call handle *</label>
-                  <input
-                    {...register('handle')}
-                    placeholder="e.g., standards-aligner"
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text placeholder-text-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  />
-                  {handleValue && (
-                    <p className={`text-xs mt-2 ${handleAvailable ? 'text-success' : 'text-error'}`}>
-                      {handleAvailable ? '✓ Available' : '✗ Already in use'}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">Agent type *</label>
-                  <select
-                    {...register('type')}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  >
-                    <option value="">Select a type</option>
-                    {AGENT_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.type && <p className="text-error text-xs mt-2">{errors.type.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">Description</label>
-                  <textarea
-                    {...register('description')}
-                    placeholder="What does this agent do?"
-                    rows={3}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text placeholder-text-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Step 2: Behavior */}
-            {currentStep === 2 && (
-              <>
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">Instructions *</label>
-                  <textarea
-                    {...register('instructions')}
-                    placeholder="Describe the job, the standards or frameworks it works with, and the output it should produce."
-                    rows={4}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text placeholder-text-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
-                  />
-                  {errors.instructions && <p className="text-error text-xs mt-2">{errors.instructions.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">When should other agents call this? *</label>
-                  <textarea
-                    {...register('when_to_call')}
-                    placeholder="e.g., Call when a lesson needs to be aligned to academic standards."
-                    rows={3}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text placeholder-text-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-600 text-text mb-3">Input it expects *</label>
-                    <textarea
-                      {...register('input_spec')}
-                      placeholder="e.g., Lesson text, grade level, target standards"
-                      rows={3}
-                      className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text placeholder-text-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-600 text-text mb-3">Output it returns *</label>
-                    <textarea
-                      {...register('output_spec')}
-                      placeholder="e.g., JSON list of aligned standards with rationale"
-                      rows={3}
-                      className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text placeholder-text-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">Who can call this agent *</label>
-                  <div className="space-y-2">
-                    {[
-                      { value: 'any', label: 'Any agent', description: 'Discoverable by every agent on the platform' },
-                      { value: 'approved', label: 'Approved agents', description: 'Only agents you approve can call it' },
-                      { value: 'orchestrator', label: 'Orchestrator only', description: 'Reachable only through the orchestrator' },
-                    ].map((option) => (
-                      <label key={option.value} className="flex items-start gap-3 p-3 rounded-lg border border-border hover:bg-panel cursor-pointer">
-                        <input
-                          type="radio"
-                          {...register('callable_by')}
-                          value={option.value}
-                          className="mt-1"
-                        />
-                        <div>
-                          <div className="font-500 text-text text-sm">{option.label}</div>
-                          <div className="text-text-3 text-xs">{option.description}</div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Step 3: Advanced */}
-            {currentStep === 3 && (
-              <>
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">AI Model *</label>
-                  <select
-                    {...register('model_id')}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  >
-                    <option value="">Select a model</option>
-                    {models.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.display_name} - {m.badge || 'Standard'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">Temperature</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="2"
-                    {...register('temperature', { valueAsNumber: true })}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  />
-                  <p className="text-text-3 text-xs mt-2">Lower = more focused, Higher = more creative (0-2)</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-600 text-text mb-3">Time limit per call (seconds)</label>
-                  <input
-                    type="number"
-                    min="5"
-                    max="600"
-                    {...register('timeout_seconds', { valueAsNumber: true })}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  />
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      {...register('strict_grounding')}
-                      className="w-4 h-4 rounded"
-                    />
-                    <div>
-                      <div className="font-500 text-text text-sm">Strict grounding</div>
-                      <div className="text-text-3 text-xs">Agent says "I don't know" instead of guessing</div>
-                    </div>
-                  </label>
-                </div>
-              </>
-            )}
-
-            {/* Step 4: Knowledge */}
-            {currentStep === 4 && (
-              <div className="text-center py-12">
-                <p className="text-text-2">Knowledge base integration coming soon</p>
-                <p className="text-text-3 text-sm mt-2">You can add knowledge after creating the agent</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <div className="border-t border-border bg-surface px-8 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-            disabled={currentStep === 1}
-            className="px-4 py-2 rounded-lg border border-border text-text hover:bg-panel disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => router.push('/agents')}
+            className="inline-flex items-center min-h-[44px] px-3 text-[15px] font-600 text-text-2"
           >
-            Back
+            Cancel
           </button>
-          <div className="flex items-center gap-3">
+          {!isEditing && (
             <button
               type="button"
-              onClick={() => router.push('/agents')}
-              className="px-4 py-2 rounded-lg border border-border text-text hover:bg-panel"
+              onClick={submitAs('draft')}
+              disabled={!canSubmit}
+              className="min-h-[44px] px-5 rounded-[10px] border border-[#C9C1AE] bg-[#FBF9F4] text-[15px] font-600 text-text disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Cancel
+              Save draft
             </button>
-            {currentStep < 4 ? (
-              <button
-                type="button"
-                onClick={() => setCurrentStep(currentStep + 1)}
-                className="px-4 py-2 rounded-lg bg-accent text-white hover:opacity-90"
-              >
-                Next
-              </button>
+          )}
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="min-h-[44px] px-[22px] rounded-[10px] border text-[15px] font-600 border-accent bg-accent text-white disabled:border-[#C9C1AE] disabled:bg-[#E4DFD2] disabled:text-text-2 disabled:cursor-not-allowed"
+          >
+            {isEditing ? 'Save changes' : 'Create agent'}
+          </button>
+        </div>
+      </header>
+
+      <div className="flex gap-8 px-10 pt-8 pb-10 items-start">
+        <div className="flex-1 min-w-0 flex flex-col gap-7">
+          {error && (
+            <div role="alert" className="rounded-[10px] border border-[#9B2C1F] bg-white px-4 py-3 text-sm text-[#9B2C1F]">
+              {error}
+            </div>
+          )}
+
+          {/* 1 Basics */}
+          <section className={sectionCls}>
+            <SectionHeader
+              n={1}
+              title="Basics"
+              aside={
+                <div className="text-sm text-text-2">
+                  <Req /> Required
+                </div>
+              }
+            />
+            <div className="grid grid-cols-2 gap-5">
+              <div className="flex flex-col gap-2">
+                <label className={labelCls}>
+                  Agent name <Req />
+                </label>
+                <input {...register('name')} placeholder="e.g. Policy Assistant" className={inputCls} />
+                {errors.name && <p className="text-xs text-[#9B2C1F]">{errors.name.message}</p>}
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className={labelCls}>
+                  Call handle <Req />
+                </label>
+                <input {...register('handle')} placeholder="policy-assistant" className={inputCls} />
+                {errors.handle ? (
+                  <p className="text-xs text-[#9B2C1F]">{errors.handle.message}</p>
+                ) : (
+                  handleValue &&
+                  handleAvailable !== null && (
+                    <p className={`text-xs ${handleAvailable ? 'text-success' : 'text-[#9B2C1F]'}`}>
+                      {handleAvailable ? 'âœ“ Available' : 'âœ— Already in use'}
+                    </p>
+                  )
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className={labelCls}>
+                Agent type <Req />
+              </label>
+              <select {...register('type')} className={inputCls}>
+                <option value="">Select a type</option>
+                {AGENT_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className={labelCls}>Description</label>
+              <input {...register('description')} placeholder="What does this agent do?" className={inputCls} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className={labelCls}>
+                Instructions <Req />
+              </label>
+              <textarea
+                {...register('instructions')}
+                placeholder="Describe the job, the standards or frameworks it works with, and the output it should produce."
+                className={`${textareaCls} h-36`}
+              />
+              {errors.instructions && <p className="text-xs text-[#9B2C1F]">{errors.instructions.message}</p>}
+            </div>
+          </section>
+
+          {/* 2 How other agents call it */}
+          <section className={sectionCls}>
+            <SectionHeader n={2} title="How other agents call it" />
+            <div className="flex flex-col gap-2">
+              <label className={labelCls}>When should other agents call this one?</label>
+              <textarea
+                {...register('when_to_call')}
+                placeholder="e.g. Call when a lesson needs to be aligned to academic standards."
+                className={`${textareaCls} h-24`}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-5">
+              <div className="flex flex-col gap-2">
+                <label className={labelCls}>Input it expects</label>
+                <textarea
+                  {...register('input_spec')}
+                  placeholder="e.g. Lesson text, grade level and target standards set."
+                  className={`${textareaCls} h-28`}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className={labelCls}>Output it returns</label>
+                <textarea
+                  {...register('output_spec')}
+                  placeholder="e.g. JSON list of aligned standards with a rationale for each."
+                  className={`${textareaCls} h-28`}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className={labelCls}>Who can call this agent</div>
+              <Controller
+                name="callable_by"
+                control={control}
+                render={({ field }) => (
+                  <div role="group" className="grid grid-cols-3 gap-4">
+                    {CALL_OPTIONS.map((o) => {
+                      const selected = field.value === o.value
+                      return (
+                        <button
+                          key={o.value}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => field.onChange(o.value)}
+                          className={`flex flex-col gap-1 text-left p-4 rounded-xl border-2 ${
+                            selected ? 'border-accent bg-white' : 'border-[#C9C1AE] bg-white'
+                          }`}
+                        >
+                          <span className="text-[15px] font-600 text-text">{o.label}</span>
+                          <span className="text-[13px] leading-[18px] text-text-2">{o.note}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              />
+            </div>
+            <div className="flex flex-col gap-2 max-w-[320px]">
+              <label className={labelCls}>Time limit per call (seconds)</label>
+              <input
+                type="number"
+                min={5}
+                max={600}
+                {...register('timeout_seconds', { valueAsNumber: true })}
+                className={inputCls}
+              />
+            </div>
+          </section>
+
+          {/* 3 Model */}
+          <section className={sectionCls}>
+            <SectionHeader
+              n={3}
+              title="Model"
+              aside={<div className="text-sm text-text-2">You can change this any time</div>}
+            />
+            <div className="flex flex-col gap-2">
+              <label className={labelCls}>
+                Choose a model <Req />
+              </label>
+              <select {...register('model_id')} className={inputCls}>
+                <option value="">Select a model</option>
+                {models.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.display_name}
+                    {m.badge ? ` Â· ${m.badge}` : ''}
+                  </option>
+                ))}
+              </select>
+              {selectedModel?.note && <div className="text-sm text-text-2">{selectedModel.note}</div>}
+            </div>
+            <div className="grid grid-cols-2 gap-5">
+              <div className="flex flex-col gap-2">
+                <label className={labelCls}>Temperature</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min={0}
+                  max={2}
+                  {...register('temperature', { valueAsNumber: true })}
+                  className={inputCls}
+                />
+                <p className="text-xs text-text-2">Lower is more focused, higher is more creative (0â€“2)</p>
+              </div>
+              <label className="flex items-start gap-3 cursor-pointer pt-7">
+                <input type="checkbox" {...register('strict_grounding')} className="w-4 h-4 mt-1" />
+                <div>
+                  <div className="text-sm font-600 text-text">Strict grounding</div>
+                  <div className="text-xs text-text-2">Agent says â€œI donâ€™t knowâ€ instead of guessing</div>
+                </div>
+              </label>
+            </div>
+          </section>
+
+          {/* 4 Knowledge */}
+          <section className={sectionCls}>
+            <SectionHeader n={4} title="Knowledge" />
+            <p className="text-[15px] leading-[22px] text-text-2">
+              Choose the knowledge bases this agent can draw on.
+            </p>
+            {knowledgeBases.length === 0 ? (
+              <p className="text-sm text-text-2">No knowledge bases available yet.</p>
             ) : (
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-6 py-2 rounded-lg bg-accent text-white hover:opacity-90 disabled:opacity-50"
-              >
-                {isSubmitting ? 'Creating...' : 'Create agent'}
-              </button>
+              <Controller
+                name="knowledge_base_ids"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex flex-wrap gap-2">
+                    {knowledgeBases.map((kb) => {
+                      const checked = field.value?.includes(kb.id) ?? false
+                      return (
+                        <button
+                          key={kb.id}
+                          type="button"
+                          aria-pressed={checked}
+                          onClick={() =>
+                            field.onChange(
+                              checked ? (field.value ?? []).filter((id) => id !== kb.id) : [...(field.value ?? []), kb.id]
+                            )
+                          }
+                          className={`inline-flex items-center gap-1.5 min-h-[40px] px-4 rounded-pill border text-sm font-500 ${
+                            checked
+                              ? 'bg-accent border-accent text-white'
+                              : 'bg-white border-[#C9C1AE] text-text hover:bg-chip'
+                          }`}
+                        >
+                          {checked && <span aria-hidden>âœ“</span>}
+                          {kb.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              />
+            )}
+          </section>
+        </div>
+
+        {/* Summary */}
+        <aside className="w-[360px] shrink-0 sticky top-8 rounded-2xl bg-[#1F1D18] text-white p-7 flex flex-col gap-5">
+          <div>
+            <h3 className="font-serif text-2xl font-600 leading-tight">{formValues.name || 'Untitled agent'}</h3>
+            <p className="text-[15px] text-[#C9C1AE] mt-1">
+              {formValues.handle ? `@${formValues.handle}` : 'No call handle yet'}
+            </p>
+          </div>
+          <div className="border-t border-white/15" />
+          {[
+            { label: 'Type', value: formValues.type || 'Not set' },
+            { label: 'Model', value: selectedModel?.display_name || 'Not set', bold: true },
+            { label: 'Called by', value: CALLED_BY_LABEL[formValues.callable_by || 'any'] },
+            {
+              label: 'Temperature',
+              value: Number.isFinite(formValues.temperature) ? Number(formValues.temperature).toFixed(1) : '1.0',
+            },
+            { label: 'Timeout', value: `${Number.isFinite(formValues.timeout_seconds) ? formValues.timeout_seconds : 60}s` },
+          ].map((row) => (
+            <div key={row.label}>
+              <div className="text-[13px] tracking-[0.06em] uppercase text-[#C9C1AE]">{row.label}</div>
+              <div className={`text-base mt-1 ${row.bold ? 'font-600' : ''}`}>{row.value}</div>
+            </div>
+          ))}
+          <div className="border-t border-white/15" />
+          <div>
+            <div className="flex items-center justify-between text-[13px] tracking-[0.06em] uppercase text-[#C9C1AE]">
+              <span>Knowledge</span>
+              <span className="normal-case tracking-normal">
+                {selectedKbs.length === 1 ? '1 base selected' : `${selectedKbs.length} bases selected`}
+              </span>
+            </div>
+            {selectedKbs.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {selectedKbs.map((kb) => (
+                  <span key={kb.id} className="inline-flex items-center h-8 px-3 rounded-pill bg-white/10 text-sm">
+                    {kb.name}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Preview Panel */}
-      <div className="w-80 bg-black text-white border-l border-border p-6 overflow-y-auto flex flex-col gap-8">
-        <div>
-          <h3 className="text-2xl font-600 mb-1">{formValues.name || 'Untitled agent'}</h3>
-          <p className="text-text-3 text-sm">{formValues.handle ? `@${formValues.handle}` : 'No call handle yet'}</p>
-        </div>
-
-        <div>
-          <div className="text-xs font-600 text-text-3 uppercase tracking-wide mb-2">TYPE</div>
-          <p className="text-text-2">{formValues.type || 'Not set'}</p>
-        </div>
-
-        <div>
-          <div className="text-xs font-600 text-text-3 uppercase tracking-wide mb-2">MODEL</div>
-          <p className="text-text-2">{models.find((m) => m.id === formValues.model_id)?.display_name || 'Claude Sonnet 5.5'}</p>
-        </div>
-
-        <div>
-          <div className="text-xs font-600 text-text-3 uppercase tracking-wide mb-2">CALLED BY</div>
-          <p className="text-text-2">
-            {{
-              any: 'Any agent',
-              approved: 'Approved agents',
-              orchestrator: 'Orchestrator only',
-            }[formValues.callable_by || 'any']}
-          </p>
-        </div>
-
-        <div>
-          <div className="text-xs font-600 text-text-3 uppercase tracking-wide mb-2">TEMPERATURE</div>
-          <p className="text-text-2">{formValues.temperature?.toFixed(1) || '1.0'}</p>
-        </div>
-
-        <div>
-          <div className="text-xs font-600 text-text-3 uppercase tracking-wide mb-2">TIMEOUT</div>
-          <p className="text-text-2">{formValues.timeout_seconds || 60}s</p>
-        </div>
-
-        <div className="pt-6 border-t border-gray-700">
-          <div className="text-xs font-600 text-text-3 uppercase tracking-wide mb-2">REQUIRED DETAILS</div>
-          <div className="space-y-2 text-sm">
-            {[
-              { label: 'Agent name', filled: !!formValues.name },
-              { label: 'Call handle', filled: !!formValues.handle },
-              { label: 'Agent type', filled: !!formValues.type },
-              { label: 'Instructions', filled: !!formValues.instructions },
-              { label: 'Input spec', filled: !!formValues.input_spec },
-              { label: 'Output spec', filled: !!formValues.output_spec },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <div className={`w-4 h-4 rounded-full ${item.filled ? 'bg-success' : 'bg-border'}`} />
-                <span className={item.filled ? 'text-text' : 'text-text-3'}>{item.label}</span>
-              </div>
-            ))}
+          <div className="border-t border-white/15" />
+          <div>
+            <div className="text-[13px] tracking-[0.06em] uppercase text-[#C9C1AE] mb-3">Required details</div>
+            <div className="flex flex-col gap-2.5 text-[15px]">
+              {requiredDetails.map((item) => (
+                <div key={item.label} className="flex items-center gap-2.5">
+                  <span
+                    className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
+                      item.filled ? 'bg-[#2E9E6B] text-white' : 'bg-white/20'
+                    }`}
+                  >
+                    {item.filled ? 'âœ“' : ''}
+                  </span>
+                  <span className={item.filled ? 'text-white' : 'text-[#C9C1AE]'}>{item.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </aside>
       </div>
     </form>
   )

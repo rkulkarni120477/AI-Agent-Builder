@@ -78,18 +78,22 @@ async def invoke_agent(
 
         except Exception as e:
             logger.error(f"Agent execution error: {e}")
-            # Save failed run
-            await executor.save_run(
-                session,
-                request.workspace_id,
-                request.agent_id,
-                request.input_text,
-                output_text,
-                status="failed",
-                error=str(e),
-                tokens_used=0,
-            )
-            yield f"data: [ERROR] {str(e)}\n\n"
+            try:
+                await session.rollback()
+                await executor.save_run(
+                    session,
+                    request.workspace_id,
+                    request.agent_id,
+                    request.input_text,
+                    output_text,
+                    status="failed",
+                    error=str(e),
+                    tokens_used=0,
+                )
+            except Exception as save_err:
+                logger.error(f"Failed to save failed run: {save_err}")
+            msg = " ".join(str(e).split())
+            yield f"data: [ERROR] {msg}\n\n"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 
