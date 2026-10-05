@@ -15,6 +15,8 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
   const [content, setContent] = useState<any>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [showChat, setShowChat] = useState(true)
+  const [docContext, setDocContext] = useState({ selection: '', doc: '' })
+  const selWords = docContext.selection ? docContext.selection.split(/\s+/).length : 0
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
 
   const { data: workspace, isLoading, error } = useQuery({
@@ -172,8 +174,16 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
         </div>
 
         <div className="flex items-center gap-2 ml-4">
-          <span className="rounded-pill border border-border bg-chip px-3 py-1 text-xs font-500 text-text-2">
-            Context: whole document
+          <span
+            className={`rounded-pill border px-3 py-1 text-xs font-500 ${
+              selWords > 0
+                ? 'border-accent/30 bg-accent/10 text-accent'
+                : 'border-border bg-chip text-text-2'
+            }`}
+          >
+            {selWords > 0
+              ? `Context: selection · ${selWords} word${selWords === 1 ? '' : 's'}`
+              : 'Context: whole document'}
           </span>
           <button
             onClick={() => setShowChat(!showChat)}
@@ -197,14 +207,14 @@ export default function WorkspaceEditorPage({ params }: WorkspacePageProps) {
         {/* Editor */}
         {content && (
           <div className={`${showChat ? 'w-2/3' : 'w-full'} flex flex-col border-r border-border bg-bg`}>
-            <Editor value={content} onChange={handleContentChange} onSave={handleSave} />
+            <Editor value={content} onChange={handleContentChange} onSave={handleSave} onContextChange={setDocContext} />
           </div>
         )}
 
         {/* Chat Panel */}
         {showChat && (
           <div className="w-1/3 flex flex-col">
-            <ChatPanel workspace_id={params.id} />
+            <ChatPanel workspace_id={params.id} context={docContext} />
           </div>
         )}
       </div>

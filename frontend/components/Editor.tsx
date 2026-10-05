@@ -8,6 +8,7 @@ interface EditorProps {
   value: any
   onChange: (content: any) => void
   onSave?: () => void
+  onContextChange?: (ctx: { selection: string; doc: string }) => void
   readOnly?: boolean
 }
 
@@ -58,8 +59,67 @@ function nodePath(editor: TiptapEditor) {
   return parts.map((p) => map[p] || p).join(' › ')
 }
 
-export function Editor({ value, onChange, onSave, readOnly = false }: EditorProps) {
+function MenuDropdown({
+  title,
+  items,
+  isOpen,
+  onToggle,
+  onSelect,
+}: {
+  title: string
+  items: { label: string; action: () => void; divider?: boolean }[]
+  isOpen: boolean
+  onToggle: () => void
+  onSelect?: () => void
+}) {
+  return (
+    <div className="relative" data-menu-container>
+      <button
+        onClick={onToggle}
+        className={`cursor-default text-sm ${
+          isOpen ? 'text-text border-b-2 border-accent' : 'text-text-2 hover:text-text'
+        }`}
+      >
+        {title}
+      </button>
+      {isOpen && (
+        <div className="absolute left-0 mt-1 w-48 rounded-lg border border-border bg-white shadow-lg z-50 py-1" data-menu-container>
+          {items.map((item, idx) => (
+            <div key={idx}>
+              {item.divider ? (
+                <div className="h-px bg-border my-1" />
+              ) : (
+                <button
+                  onClick={() => {
+                    item.action()
+                    onSelect?.()
+                  }}
+                  className="w-full text-left px-4 py-1.5 text-sm text-text hover:bg-chip"
+                >
+                  {item.label}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function Editor({ value, onChange, onSave, onContextChange, readOnly = false }: EditorProps) {
   const [, force] = useState(0)
+  const [showAbout, setShowAbout] = useState(false)
+  const [activeMenu, setActiveMenu] = useState<string | null>(null)
+
+  const toggleMenu = (menuName: string) => {
+    setActiveMenu(activeMenu === menuName ? null : menuName)
+  }
+
+  const closeMenus = () => {
+    setActiveMenu(null)
+  }
+
   const editor = useEditor({
     extensions: [StarterKit],
     content: value || '',
@@ -73,9 +133,24 @@ export function Editor({ value, onChange, onSave, readOnly = false }: EditorProp
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON())
     },
-    onSelectionUpdate: () => force((n) => n + 1),
+    onSelectionUpdate: ({ editor }) => {
+      force((n) => n + 1)
+      reportContext(editor)
+    },
     onTransaction: () => force((n) => n + 1),
   })
+
+  function reportContext(ed: TiptapEditor) {
+    if (!onContextChange) return
+    const { from, to, empty } = ed.state.selection
+    const selection = empty ? '' : ed.state.doc.textBetween(from, to, '\n').trim()
+    onContextChange({ selection, doc: ed.getText() })
+  }
+
+  useEffect(() => {
+    if (editor) reportContext(editor)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, value])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -83,10 +158,24 @@ export function Editor({ value, onChange, onSave, readOnly = false }: EditorProp
         e.preventDefault()
         onSave?.()
       }
+      if (e.key === 'Escape') {
+        closeMenus()
+      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onSave])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('[data-menu-container]')) {
+        closeMenus()
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
   if (!editor) return null
 
@@ -106,15 +195,91 @@ export function Editor({ value, onChange, onSave, readOnly = false }: EditorProp
     else chain.setHeading({ level: Number(v[1]) as 1 | 2 | 3 }).run()
   }
 
+  const fileMenuItems = [
+    { label: 'New document', action: () => window.location.href = '/workspace/new' },
+    { label: 'Print', action: () => window.print(), divider: false },
+  ]
+
+  const editMenuItems = [
+    { label: 'Undo', action: () => editor.chain().focus().undo().run() },
+    { label: 'Redo', action: () => editor.chain().focus().redo().run() },
+    { divider: true },
+    { label: 'Cut', action: () => document.execCommand('cut') },
+    { label: 'Copy', action: () => document.execCommand('copy') },
+    { divider: true },
+    { label: 'Select all', action: () => editor.chain().focus().selectAll().run() },
+    { label: 'Find and replace', action: () => alert('Find and replace') },
+  ]
+
+  const viewMenuItems = [
+    { label: 'Source code', action: () => alert('Source code view') },
+    { label: 'Preview', action: () => alert('Preview mode') },
+    { label: 'Show blocks', action: () => alert('Show blocks') },
+    { label: 'Fullscreen', action: () => document.documentElement.requestFullscreen?.() },
+    { divider: true },
+    { label: 'Word count', action: () => alert(`Words: ${text.trim() ? text.trim().split(/\s+/).length : 0}`) },
+  ]
+
+  const insertMenuItems = [
+    { label: 'Link', action: () => alert('Insert link') },
+    { label: 'Image', action: () => alert('Insert image') },
+    { label: 'Table', action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+    { label: 'Horizontal line', action: () => editor.chain().focus().setHorizontalRule().run() },
+    { label: 'Page break', action: () => alert('Insert page break') },
+    { label: 'Blockquote', action: () => editor.chain().focus().toggleBlockquote().run() },
+    { label: 'Code block', action: () => editor.chain().focus().toggleCodeBlock().run() },
+    { label: 'Accordion', action: () => alert('Insert accordion') },
+    { label: 'Special character', action: () => alert('Insert special character') },
+  ]
+
+  const formatMenuItems = [
+    { label: 'Bold', action: () => editor.chain().focus().toggleBold().run() },
+    { label: 'Italic', action: () => editor.chain().focus().toggleItalic().run() },
+    { label: 'Underline', action: () => alert('Underline (implement via extension)') },
+    { label: 'Strikethrough', action: () => editor.chain().focus().toggleStrike().run() },
+    { divider: true },
+    { label: 'Heading 1', action: () => editor.chain().focus().setHeading({ level: 1 }).run() },
+    { label: 'Heading 2', action: () => editor.chain().focus().setHeading({ level: 2 }).run() },
+    { label: 'Heading 3', action: () => editor.chain().focus().setHeading({ level: 3 }).run() },
+    { label: 'Paragraph', action: () => editor.chain().focus().setParagraph().run() },
+    { divider: true },
+    { label: 'Clear formatting', action: () => editor.chain().focus().clearNodes().run() },
+  ]
+
+  const tableMenuItems = [
+    { label: 'Insert table', action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+    { label: 'Row above', action: () => editor.chain().focus().addRowBefore().run() },
+    { label: 'Row below', action: () => editor.chain().focus().addRowAfter().run() },
+    { label: 'Column left', action: () => editor.chain().focus().addColBefore().run() },
+    { label: 'Column right', action: () => editor.chain().focus().addColAfter().run() },
+    { divider: true },
+    { label: 'Delete row', action: () => editor.chain().focus().deleteRow().run() },
+    { label: 'Delete column', action: () => editor.chain().focus().deleteColumn().run() },
+    { label: 'Delete table', action: () => editor.chain().focus().deleteTable().run() },
+  ]
+
+  const toolsMenuItems = [
+    { label: 'Word count', action: () => alert(`Words: ${text.trim() ? text.trim().split(/\s+/).length : 0}`) },
+    { label: 'Source code', action: () => alert('Source code view') },
+    { label: 'Accessibility check', action: () => alert('Accessibility check') },
+  ]
+
+  const helpMenuItems = [
+    { label: 'Keyboard shortcuts', action: () => alert('Keyboard shortcuts') },
+  ]
+
   return (
     <div className="flex flex-col h-full">
       <div className="px-6 pt-4">
-        <div className="flex items-center gap-4 px-2 pb-2 text-sm text-text-2">
-          {MENUS.map((m) => (
-            <span key={m} className="cursor-default hover:text-text">
-              {m}
-            </span>
-          ))}
+        <div className="flex items-center gap-4 px-2 pb-2">
+          <MenuDropdown title="File" items={fileMenuItems} isOpen={activeMenu === 'File'} onToggle={() => toggleMenu('File')} onSelect={closeMenus} />
+          <MenuDropdown title="Edit" items={editMenuItems} isOpen={activeMenu === 'Edit'} onToggle={() => toggleMenu('Edit')} onSelect={closeMenus} />
+          <MenuDropdown title="View" items={viewMenuItems} isOpen={activeMenu === 'View'} onToggle={() => toggleMenu('View')} onSelect={closeMenus} />
+          <MenuDropdown title="Insert" items={insertMenuItems} isOpen={activeMenu === 'Insert'} onToggle={() => toggleMenu('Insert')} onSelect={closeMenus} />
+          <MenuDropdown title="Format" items={formatMenuItems} isOpen={activeMenu === 'Format'} onToggle={() => toggleMenu('Format')} onSelect={closeMenus} />
+          <MenuDropdown title="Table" items={tableMenuItems} isOpen={activeMenu === 'Table'} onToggle={() => toggleMenu('Table')} onSelect={closeMenus} />
+          <MenuDropdown title="Tools" items={toolsMenuItems} isOpen={activeMenu === 'Tools'} onToggle={() => toggleMenu('Tools')} onSelect={closeMenus} />
+          <MenuDropdown title="Help" items={helpMenuItems} isOpen={activeMenu === 'Help'} onToggle={() => toggleMenu('Help')} onSelect={closeMenus} />
         </div>
         <div className="flex items-center gap-1 flex-wrap rounded-t-lg border border-border bg-[#FBF9F4] px-2 py-1.5">
           <ToolButton title="Undo" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()}>

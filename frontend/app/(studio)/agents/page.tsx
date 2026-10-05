@@ -166,11 +166,11 @@ export default function AgentsPage() {
               </div>
 
               {/* Table Rows */}
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-border bg-panel">
                 {agents.map((agent) => (
                   <div
                     key={agent.id}
-                    className="grid grid-cols-[2fr_1fr_1.5fr_0.8fr_1fr_0.8fr] gap-4 px-6 py-4 bg-surface hover:bg-panel transition-colors items-center"
+                    className="grid grid-cols-[2fr_1fr_1.5fr_0.8fr_1fr_0.8fr] gap-4 px-6 py-4 hover:bg-chip/50 transition-colors items-center"
                   >
                     {/* Agent */}
                     <div className="flex items-start gap-3">

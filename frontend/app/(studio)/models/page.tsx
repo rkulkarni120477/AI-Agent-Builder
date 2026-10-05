@@ -41,10 +41,7 @@ export default function ModelsPage() {
                         </span>
                       )}
                       <span className="text-xs text-text-3">
-                        Context: {model.context_window.toLocaleString()} tokens
-                      </span>
-                      <span className="text-xs text-text-3">
-                        Max output: {model.max_tokens.toLocaleString()} tokens
+                        Max output: {model.max_tokens?.toLocaleString?.()} tokens
                       </span>
                     </div>
                   </div>
