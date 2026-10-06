@@ -39,7 +39,7 @@ app.include_router(workspaces.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
 app.include_router(review.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
-app.include_router(settings_routes.router, prefix="/api")
+app.include_router(settings_routes.router, prefix="/api/settings")
 
 
 @app.get("/health")
