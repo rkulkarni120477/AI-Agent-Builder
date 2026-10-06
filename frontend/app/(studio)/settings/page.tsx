@@ -186,6 +186,22 @@ export default function SettingsPage() {
                       <span className="text-sm text-text">Agent runs fail</span>
                     </label>
                   </div>
+
+                  {/* Status indicator */}
+                  <div className="pt-2 border-t border-border">
+                    {updateMutation.isPending && (
+                      <p className="text-text-3 text-xs flex items-center gap-2">
+                        <span className="inline-block w-2 h-2 bg-accent rounded-full animate-pulse"></span>
+                        Saving...
+                      </p>
+                    )}
+                    {updateMutation.isError && (
+                      <p className="text-error text-xs">Failed to save settings. Please try again.</p>
+                    )}
+                    {updateMutation.isSuccess && !updateMutation.isPending && (
+                      <p className="text-success text-xs">✓ Settings saved</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
