@@ -3,7 +3,7 @@
 from app.models.base import Base, SoftDeleteMixin, TimestampedMixin
 from app.models.models import (
     Agent, File, KnowledgeBase, Model, Tag, User, Workspace, Run, Message, Review,
-    WorkspaceSettings, UserSettings
+    WorkspaceSettings, UserSettings, Notification
 )
 
 __all__ = [
@@ -22,4 +22,5 @@ __all__ = [
     "Review",
     "WorkspaceSettings",
     "UserSettings",
+    "Notification",
 ]
