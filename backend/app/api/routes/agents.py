@@ -39,7 +39,7 @@ async def _load_knowledge_bases(session: AsyncSession, kb_ids: list[str]) -> lis
 @router.get("", response_model=list[AgentListResponse])
 async def list_agents(
     q: str = Query("", min_length=0, max_length=255),
-    status: str = Query("All", regex="^(All|Active|Draft|Paused)$"),
+    status: str = Query("All", regex="^(all|All|active|Active|draft|Draft|paused|Paused)$"),
     type: str = Query("", regex="^[a-z0-9_-]*$"),
     session: AsyncSession = Depends(get_session),
 ):
