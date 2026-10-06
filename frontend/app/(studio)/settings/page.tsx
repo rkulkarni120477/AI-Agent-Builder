@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { fetchUserSettings, updateUserSettings } from '@/lib/analytics-api'
 import { useTheme } from '@/app/theme-provider'
 
@@ -37,6 +37,13 @@ export default function SettingsPage() {
     setNotifications(enabled)
     updateMutation.mutate({ notifications_enabled: enabled })
   }
+
+  // Sync local notifications state with loaded settings
+  useEffect(() => {
+    if (settings?.notifications_enabled !== undefined) {
+      setNotifications(settings.notifications_enabled)
+    }
+  }, [settings?.notifications_enabled])
 
   return (
     <div className="flex flex-col h-screen bg-bg">
