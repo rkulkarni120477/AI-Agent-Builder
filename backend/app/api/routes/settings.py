@@ -9,7 +9,12 @@ from app.core.db import get_session
 from app.models import WorkspaceSettings, UserSettings, Workspace, User
 from app.schemas.workspace import WorkspaceResponse
 
-router = APIRouter(prefix="/settings", tags=["settings"])
+router = APIRouter(tags=["settings"])
+
+@router.get("/test")
+async def test_endpoint():
+    """Test endpoint to verify router is registered."""
+    return {"status": "settings router is working"}
 
 
 @router.get("/workspace/{workspace_id}")
