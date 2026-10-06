@@ -64,17 +64,14 @@ export default function SettingsPage() {
 
   const handleEmailChange = (newEmail: string) => {
     setEmail(newEmail)
-    updateMutation.mutate({ notification_email: newEmail })
   }
 
   const handleNotifyOnSuccessChange = (checked: boolean) => {
     setNotifyOnSuccess(checked)
-    updateMutation.mutate({ notify_on_success: checked })
   }
 
   const handleNotifyOnFailureChange = (checked: boolean) => {
     setNotifyOnFailure(checked)
-    updateMutation.mutate({ notify_on_failure: checked })
   }
 
   // Sync local state with loaded settings
@@ -187,19 +184,26 @@ export default function SettingsPage() {
                     </label>
                   </div>
 
-                  {/* Status indicator */}
-                  <div className="pt-2 border-t border-border">
-                    {updateMutation.isPending && (
-                      <p className="text-text-3 text-xs flex items-center gap-2">
-                        <span className="inline-block w-2 h-2 bg-accent rounded-full animate-pulse"></span>
-                        Saving...
-                      </p>
-                    )}
+                  {/* Save button and status */}
+                  <div className="pt-2 border-t border-border flex items-center gap-3">
+                    <button
+                      onClick={() =>
+                        updateMutation.mutate({
+                          notification_email: email,
+                          notify_on_success: notifyOnSuccess,
+                          notify_on_failure: notifyOnFailure,
+                        })
+                      }
+                      disabled={updateMutation.isPending}
+                      className="px-4 py-2 rounded-button bg-accent text-white text-sm font-500 hover:bg-accent-hover disabled:opacity-50 transition-colors"
+                    >
+                      {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    </button>
                     {updateMutation.isError && (
-                      <p className="text-error text-xs">Failed to save settings. Please try again.</p>
+                      <p className="text-error text-xs">Failed to save. Please try again.</p>
                     )}
                     {updateMutation.isSuccess && !updateMutation.isPending && (
-                      <p className="text-success text-xs">✓ Settings saved</p>
+                      <p className="text-success text-xs">✓ Saved</p>
                     )}
                   </div>
                 </div>
