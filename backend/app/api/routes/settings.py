@@ -3,7 +3,7 @@
 import uuid
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 
 from app.core.db import get_session
 from app.models import WorkspaceSettings, UserSettings, Workspace, User
@@ -58,7 +58,7 @@ async def get_workspace_settings(
 @router.patch("/workspace/{workspace_id}")
 async def update_workspace_settings(
     workspace_id: str,
-    data: dict,
+    data: dict = Body(...),
     session: AsyncSession = Depends(get_session),
 ):
     """Update workspace settings."""
@@ -137,7 +137,7 @@ async def get_user_settings(
 @router.patch("/user/{user_id}")
 async def update_user_settings(
     user_id: str,
-    data: dict,
+    data: dict = Body(...),
     session: AsyncSession = Depends(get_session),
 ):
     """Update user settings."""
