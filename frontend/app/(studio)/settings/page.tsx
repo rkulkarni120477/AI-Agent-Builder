@@ -20,6 +20,27 @@ export default function SettingsPage() {
 
   const updateMutation = useMutation({
     mutationFn: (data: any) => updateUserSettings(userId, data),
+    onMutate: async (newData: any) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['user-settings', userId] })
+
+      // Snapshot the previous value
+      const previousSettings = queryClient.getQueryData(['user-settings', userId])
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(['user-settings', userId], (old: any) => ({
+        ...old,
+        ...newData,
+      }))
+
+      return { previousSettings }
+    },
+    onError: (err, newData, context: any) => {
+      // Revert to previous settings on error
+      if (context?.previousSettings) {
+        queryClient.setQueryData(['user-settings', userId], context.previousSettings)
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-settings'] })
     },
