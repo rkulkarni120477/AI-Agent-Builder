@@ -45,7 +45,7 @@ class AgentCreate(AgentBase):
     """Create agent request."""
 
     knowledge_base_ids: list[str] = []
-    status: str = Field(default="draft", pattern="^(draft|active)$")
+    status: str = Field(default="draft", pattern="^(draft|active|paused)$")
 
 
 class AgentUpdate(BaseModel):
