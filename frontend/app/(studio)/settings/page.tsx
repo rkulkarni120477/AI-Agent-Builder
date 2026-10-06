@@ -110,7 +110,7 @@ export default function SettingsPage() {
                         updateMutation.mutate({ notification_email: e.target.value })
                       }
                       placeholder="you@example.com"
-                      className="w-full px-3 py-2 rounded-button border border-border bg-surface text-text text-sm"
+                      className="w-full px-4 py-2.5 rounded-button border-2 border-border bg-surface text-text text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-colors"
                     />
                     <p className="text-text-3 text-xs mt-1">
                       Notifications will be sent to this email address
@@ -118,27 +118,27 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Notification types */}
-                  <div className="space-y-3">
+                  <div className="space-y-3 pt-2">
                     <p className="text-sm font-500 text-text">Notify me when:</p>
-                    <label className="flex items-center gap-3 cursor-pointer">
+                    <label className="flex items-center gap-3 cursor-pointer select-none hover:opacity-80 transition-opacity">
                       <input
                         type="checkbox"
                         checked={settings?.notify_on_success || false}
                         onChange={(e) =>
                           updateMutation.mutate({ notify_on_success: e.target.checked })
                         }
-                        className="w-4 h-4"
+                        className="w-5 h-5 cursor-pointer rounded border-2 border-border accent-accent"
                       />
                       <span className="text-sm text-text">Agent runs complete successfully</span>
                     </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
+                    <label className="flex items-center gap-3 cursor-pointer select-none hover:opacity-80 transition-opacity">
                       <input
                         type="checkbox"
                         checked={settings?.notify_on_failure || false}
                         onChange={(e) =>
                           updateMutation.mutate({ notify_on_failure: e.target.checked })
                         }
-                        className="w-4 h-4"
+                        className="w-5 h-5 cursor-pointer rounded border-2 border-border accent-accent"
                       />
                       <span className="text-sm text-text">Agent runs fail</span>
                     </label>
