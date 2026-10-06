@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     vector_dir: str = "./data/vectors"
 
     # Frontend
-    frontend_origin: str = "http://localhost:3000"
+    frontend_origin: str = "http://localhost:3100"
 
     # Auth
     jwt_secret: str = "your-secret-key-change-this-in-production"
