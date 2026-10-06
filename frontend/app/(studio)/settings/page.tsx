@@ -9,6 +9,9 @@ export default function SettingsPage() {
   const queryClient = useQueryClient()
   const { theme, setTheme } = useTheme()
   const [notifications, setNotifications] = useState(true)
+  const [email, setEmail] = useState('')
+  const [notifyOnSuccess, setNotifyOnSuccess] = useState(false)
+  const [notifyOnFailure, setNotifyOnFailure] = useState(false)
 
   // TODO: Get actual user ID from auth context
   const userId = 'default-user'
@@ -59,12 +62,30 @@ export default function SettingsPage() {
     updateMutation.mutate({ notifications_enabled: enabled })
   }
 
-  // Sync local notifications state with loaded settings
+  const handleEmailChange = (newEmail: string) => {
+    setEmail(newEmail)
+    updateMutation.mutate({ notification_email: newEmail })
+  }
+
+  const handleNotifyOnSuccessChange = (checked: boolean) => {
+    setNotifyOnSuccess(checked)
+    updateMutation.mutate({ notify_on_success: checked })
+  }
+
+  const handleNotifyOnFailureChange = (checked: boolean) => {
+    setNotifyOnFailure(checked)
+    updateMutation.mutate({ notify_on_failure: checked })
+  }
+
+  // Sync local state with loaded settings
   useEffect(() => {
-    if (settings?.notifications_enabled !== undefined) {
-      setNotifications(settings.notifications_enabled)
+    if (settings) {
+      setNotifications(settings.notifications_enabled !== false)
+      setEmail(settings.notification_email || '')
+      setNotifyOnSuccess(settings.notify_on_success || false)
+      setNotifyOnFailure(settings.notify_on_failure || false)
     }
-  }, [settings?.notifications_enabled])
+  }, [settings?.id])
 
   return (
     <div className="flex flex-col h-screen bg-bg">
@@ -133,10 +154,8 @@ export default function SettingsPage() {
                     <label className="block text-sm font-500 text-text mb-2">Email Address</label>
                     <input
                       type="email"
-                      value={settings?.notification_email || ''}
-                      onChange={(e) =>
-                        updateMutation.mutate({ notification_email: e.target.value })
-                      }
+                      value={email}
+                      onChange={(e) => handleEmailChange(e.target.value)}
                       placeholder="you@example.com"
                       className="w-full px-4 py-2.5 rounded-button border-2 border-border bg-surface text-text text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-colors"
                     />
@@ -151,10 +170,8 @@ export default function SettingsPage() {
                     <label className="flex items-center gap-3 cursor-pointer select-none hover:opacity-80 transition-opacity">
                       <input
                         type="checkbox"
-                        checked={settings?.notify_on_success || false}
-                        onChange={(e) =>
-                          updateMutation.mutate({ notify_on_success: e.target.checked })
-                        }
+                        checked={notifyOnSuccess}
+                        onChange={(e) => handleNotifyOnSuccessChange(e.target.checked)}
                         className="w-5 h-5 cursor-pointer rounded border-2 border-border accent-accent"
                       />
                       <span className="text-sm text-text">Agent runs complete successfully</span>
@@ -162,10 +179,8 @@ export default function SettingsPage() {
                     <label className="flex items-center gap-3 cursor-pointer select-none hover:opacity-80 transition-opacity">
                       <input
                         type="checkbox"
-                        checked={settings?.notify_on_failure || false}
-                        onChange={(e) =>
-                          updateMutation.mutate({ notify_on_failure: e.target.checked })
-                        }
+                        checked={notifyOnFailure}
+                        onChange={(e) => handleNotifyOnFailureChange(e.target.checked)}
                         className="w-5 h-5 cursor-pointer rounded border-2 border-border accent-accent"
                       />
                       <span className="text-sm text-text">Agent runs fail</span>
