@@ -61,8 +61,8 @@ export default function AgentsPage() {
       <div className="border-b border-border bg-surface px-8 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-600 text-text">Agents</h1>
-            <p className="text-text-3 mt-1">Build and manage your AI agents</p>
+            <p className="text-sm text-text-3 mb-1">Workspace</p>
+            <h1 className="text-3xl font-700 text-text" style={{ fontFamily: 'serif' }}>Agents</h1>
           </div>
           <Link
             href="/agents/new"
@@ -154,9 +154,9 @@ export default function AgentsPage() {
         ) : (
           <div className="px-8 py-6">
             {/* Table */}
-            <div className="border border-border rounded-lg overflow-hidden">
+            <div className="border border-border rounded-xl overflow-hidden" style={{ backgroundColor: '#FBF9F4' }}>
               {/* Table Header */}
-              <div className="grid grid-cols-[2fr_1fr_1.5fr_0.8fr_1fr_0.8fr] gap-4 px-6 py-4 bg-sidebar border-b border-border font-600 text-xs text-text-3 uppercase tracking-wide">
+              <div className="grid grid-cols-[2fr_1fr_1.5fr_0.8fr_1fr_0.8fr] gap-4 px-6 py-4 font-700 text-xs text-text-3 uppercase tracking-widest" style={{ backgroundColor: '#EFEADD', borderBottom: '1px solid #DAD3C3' }}>
                 <div>Agent</div>
                 <div>Model</div>
                 <div>Knowledge</div>
@@ -166,23 +166,24 @@ export default function AgentsPage() {
               </div>
 
               {/* Table Rows */}
-              <div className="divide-y divide-border bg-panel">
+              <div style={{ backgroundColor: '#FBF9F4' }}>
                 {agents.map((agent) => (
                   <div
                     key={agent.id}
-                    className="grid grid-cols-[2fr_1fr_1.5fr_0.8fr_1fr_0.8fr] gap-4 px-6 py-4 hover:bg-chip/50 transition-colors items-center"
+                    className="grid grid-cols-[2fr_1fr_1.5fr_0.8fr_1fr_0.8fr] gap-4 px-6 py-5 items-center"
+                    style={{ borderBottom: '1px solid #E6E0D2' }}
                   >
                     {/* Agent */}
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(79, 172, 254, 0.15)' }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-blue-600" style={{ color: '#4fac7e' }}>
-                          <rect x="5" y="6" width="14" height="12" rx="1.5" />
-                          <path d="M5 9h14M8 18v2M16 18v2" />
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#E4EDEA' }}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#0E5A57' }}>
+                          <rect x="4" y="8" width="16" height="12" rx="2" />
+                          <path d="M12 8V4M9 14h.01M15 14h.01" />
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-600 text-text truncate">{agent.name}</h3>
-                        <p className="text-text-3 text-xs uppercase tracking-wide mt-1">{agent.type}</p>
+                        <h3 className="font-700 text-lg text-text truncate" style={{ fontFamily: 'serif' }}>{agent.name}</h3>
+                        <p className="text-xs uppercase tracking-widest font-600 mt-0.5" style={{ color: '#0E5A57' }}>{agent.type}</p>
                         <p className="text-text-3 text-sm mt-1 line-clamp-1">{agent.description}</p>
                       </div>
                     </div>
@@ -191,12 +192,13 @@ export default function AgentsPage() {
                     <div className="text-sm text-text">{agent.model?.display_name}</div>
 
                     {/* Knowledge */}
-                    <div className="flex flex-col items-start gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {agent.knowledge_bases && agent.knowledge_bases.length > 0 ? (
                         agent.knowledge_bases.map((kb, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center h-8 px-3 rounded-pill bg-chip text-text text-sm font-500 whitespace-nowrap border border-border"
+                            className="inline-flex items-center h-7 px-3 rounded-full text-xs font-500 whitespace-nowrap border"
+                            style={{ backgroundColor: '#EFEADD', color: '#3D392F', borderColor: '#DAD3C3' }}
                           >
                             {kb}
                           </span>
@@ -208,14 +210,14 @@ export default function AgentsPage() {
 
                     {/* Status */}
                     <div
-                      className="inline-flex h-7 w-fit items-center gap-2 rounded-pill px-3 text-sm font-600"
+                      className="inline-flex h-8 items-center gap-2 rounded-full px-3 text-sm font-600 w-fit"
                       style={{
                         backgroundColor: getStatusStyle(agent.status).backgroundColor,
                         color: getStatusStyle(agent.status).color,
                       }}
                     >
                       <span
-                        className="h-2 w-2 rounded-full"
+                        className="h-2.5 w-2.5 rounded-full flex-shrink-0"
                         style={{ backgroundColor: getStatusStyle(agent.status).dotColor }}
                       />
                       <span className="capitalize">{agent.status}</span>
@@ -228,7 +230,8 @@ export default function AgentsPage() {
                     <div className="text-right">
                       <button
                         onClick={() => router.push(`/agents/${agent.id}`)}
-                        className="px-4 py-1.5 rounded-lg border border-border text-text text-sm font-500 hover:bg-panel transition-colors"
+                        className="px-4 py-2 rounded-lg border text-text text-sm font-600 hover:bg-white transition-colors"
+                        style={{ borderColor: '#C9C1AE', backgroundColor: '#FFFFFF' }}
                       >
                         Open
                       </button>
