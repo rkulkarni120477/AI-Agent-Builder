@@ -106,57 +106,122 @@ try:
         session.commit()
         print("✓ Default user created")
 
-    # Create test agents with knowledge bases
-    agent1 = Agent(
-        id=str(uuid.uuid4()),
-        name="Research Assistant",
-        handle="research-assistant",
-        type="text",
-        description="Helps with research and information gathering",
-        instructions="You are a helpful research assistant.",
-        status="active",
-        model_id=first_model.id,
-        owner_id="default-user",
-        temperature=0.7,
-        strict_grounding=False
-    )
-    agent1.knowledge_bases = [kb_research]
-    session.add(agent1)
+    # Create test agents
+    agents = [
+        Agent(
+            id=str(uuid.uuid4()),
+            name="Research Assistant",
+            handle="research-assistant",
+            type="text",
+            description="Helps with research and information gathering",
+            instructions="You are a helpful research assistant.",
+            status="active",
+            model_id=first_model.id,
+            owner_id="default-user",
+            temperature=0.7,
+            strict_grounding=False,
+            knowledge_bases=[kb_research]
+        ),
+        Agent(
+            id=str(uuid.uuid4()),
+            name="Code Reviewer",
+            handle="code-reviewer",
+            type="text",
+            description="Reviews and analyzes code for quality",
+            instructions="You are an expert code reviewer.",
+            status="paused",
+            model_id=first_model.id,
+            owner_id="default-user",
+            temperature=0.3,
+            strict_grounding=False,
+            knowledge_bases=[kb_code]
+        ),
+        Agent(
+            id=str(uuid.uuid4()),
+            name="Content Writer",
+            handle="content-writer",
+            type="text",
+            description="Writes engaging and informative content",
+            instructions="You are a professional content writer.",
+            status="active",
+            model_id=first_model.id,
+            owner_id="default-user",
+            temperature=0.8,
+            strict_grounding=False,
+            knowledge_bases=[kb_content]
+        ),
+        Agent(
+            id=str(uuid.uuid4()),
+            name="Data Analyst",
+            handle="data-analyst",
+            type="text",
+            description="Analyzes data and generates insights from datasets",
+            instructions="You are a skilled data analyst. Provide data-driven insights.",
+            status="draft",
+            model_id=first_model.id,
+            owner_id="default-user",
+            temperature=0.5,
+            strict_grounding=False
+        ),
+        Agent(
+            id=str(uuid.uuid4()),
+            name="SEO Optimizer",
+            handle="seo-optimizer",
+            type="text",
+            description="Optimizes content for search engines and visibility",
+            instructions="You are an SEO expert. Help optimize content for search visibility.",
+            status="draft",
+            model_id=first_model.id,
+            owner_id="default-user",
+            temperature=0.6,
+            strict_grounding=False
+        ),
+        Agent(
+            id=str(uuid.uuid4()),
+            name="Customer Support",
+            handle="customer-support",
+            type="text",
+            description="Handles customer inquiries and support requests professionally",
+            instructions="You are a helpful customer support representative.",
+            status="draft",
+            model_id=first_model.id,
+            owner_id="default-user",
+            temperature=0.7,
+            strict_grounding=True
+        ),
+        Agent(
+            id=str(uuid.uuid4()),
+            name="Product Manager Assistant",
+            handle="pm-assistant",
+            type="text",
+            description="Assists with product management and roadmap planning",
+            instructions="You are a product management assistant.",
+            status="draft",
+            model_id=first_model.id,
+            owner_id="default-user",
+            temperature=0.7,
+            strict_grounding=False
+        ),
+        Agent(
+            id=str(uuid.uuid4()),
+            name="Marketing Specialist",
+            handle="marketing-specialist",
+            type="text",
+            description="Develops marketing strategies and campaigns",
+            instructions="You are a marketing specialist. Develop effective marketing strategies.",
+            status="draft",
+            model_id=first_model.id,
+            owner_id="default-user",
+            temperature=0.75,
+            strict_grounding=False
+        ),
+    ]
 
-    agent2 = Agent(
-        id=str(uuid.uuid4()),
-        name="Code Reviewer",
-        handle="code-reviewer",
-        type="text",
-        description="Reviews and analyzes code for quality",
-        instructions="You are an expert code reviewer.",
-        status="paused",
-        model_id=first_model.id,
-        owner_id="default-user",
-        temperature=0.3,
-        strict_grounding=False
-    )
-    agent2.knowledge_bases = [kb_code]
-    session.add(agent2)
-
-    agent3 = Agent(
-        id=str(uuid.uuid4()),
-        name="Content Writer",
-        handle="content-writer",
-        type="text",
-        description="Writes engaging and informative content",
-        instructions="You are a professional content writer.",
-        status="active",
-        model_id=first_model.id,
-        owner_id="default-user",
-        temperature=0.8,
-        strict_grounding=False
-    )
-    agent3.knowledge_bases = [kb_content]
-    session.add(agent3)
+    for agent in agents:
+        session.add(agent)
 
     session.commit()
-    print("✓ Agents created with knowledge bases")
+    print(f"✓ {len(agents)} agents created with knowledge bases")
     print("\n✅ Database seeded successfully!")
 
 except Exception as e:
