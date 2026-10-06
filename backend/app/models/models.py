@@ -321,9 +321,34 @@ class UserSettings(Base, TimestampedMixin):
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False, unique=True)
     theme: Mapped[str] = mapped_column(String(50), default="light")  # light, dark, auto
     notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    notification_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    notify_on_success: Mapped[bool] = mapped_column(Boolean, default=False)
+    notify_on_failure: Mapped[bool] = mapped_column(Boolean, default=True)
     api_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+
+
+class Notification(Base, TimestampedMixin):
+    """Notification history for audit and tracking."""
+
+    __tablename__ = "notifications"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False)
+    run_id: Mapped[str] = mapped_column(String(36), ForeignKey("runs.id"), nullable=False)
+    agent_id: Mapped[str] = mapped_column(String(36), ForeignKey("agents.id"), nullable=False)
+    recipient_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="pending")  # pending, sent, failed
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    sent_at: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+    run: Mapped["Run"] = relationship("Run", foreign_keys=[run_id])
+    agent: Mapped["Agent"] = relationship("Agent", foreign_keys=[agent_id])
 
 
 from sqlalchemy import Column

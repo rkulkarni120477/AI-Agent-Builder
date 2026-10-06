@@ -18,6 +18,7 @@ from app.schemas.chat import (
     ChatHistoryResponse,
 )
 from app.agents.executor import AgentExecutor
+from app.services.notification import notification_service
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 executor = AgentExecutor()
@@ -76,11 +77,21 @@ async def invoke_agent(
                 tokens_used=0,
             )
 
+            # Send notification to agent owner
+            if run:
+                await notification_service.send_run_notification(
+                    run_id=run.id,
+                    agent_id=request.agent_id,
+                    user_id=agent.owner_id,
+                    run_status="completed",
+                    session=session,
+                )
+
         except Exception as e:
             logger.error(f"Agent execution error: {e}")
             try:
                 await session.rollback()
-                await executor.save_run(
+                run = await executor.save_run(
                     session,
                     request.workspace_id,
                     request.agent_id,
@@ -90,6 +101,16 @@ async def invoke_agent(
                     error=str(e),
                     tokens_used=0,
                 )
+
+                # Send notification for failed run
+                if run:
+                    await notification_service.send_run_notification(
+                        run_id=run.id,
+                        agent_id=request.agent_id,
+                        user_id=agent.owner_id,
+                        run_status="failed",
+                        session=session,
+                    )
             except Exception as save_err:
                 logger.error(f"Failed to save failed run: {save_err}")
             msg = " ".join(str(e).split())

@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
 
+    # Email/Notifications
+    email_provider: str = "sendgrid"  # sendgrid or mailgun
+    sendgrid_api_key: str | None = None
+    mailgun_api_key: str | None = None
+    mailgun_domain: str | None = None
+    from_email: str = "noreply@agentstudio.local"
+    from_name: str = "Agent Studio"
+
     class Config:
         env_file = (str(_ROOT / ".env"), ".env")
         env_file_encoding = "utf-8"

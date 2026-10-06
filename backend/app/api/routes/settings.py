@@ -125,6 +125,9 @@ async def get_user_settings(
         "user_id": settings.user_id,
         "theme": settings.theme,
         "notifications_enabled": settings.notifications_enabled,
+        "notification_email": settings.notification_email,
+        "notify_on_success": settings.notify_on_success,
+        "notify_on_failure": settings.notify_on_failure,
         "has_api_key": settings.api_key is not None,
         "created_at": settings.created_at.isoformat(),
         "updated_at": settings.updated_at.isoformat(),
@@ -147,7 +150,13 @@ async def update_user_settings(
         raise HTTPException(status_code=404, detail="User settings not found")
 
     # Update allowed fields only
-    allowed_fields = {"theme", "notifications_enabled"}
+    allowed_fields = {
+        "theme",
+        "notifications_enabled",
+        "notification_email",
+        "notify_on_success",
+        "notify_on_failure",
+    }
     for key, value in data.items():
         if key in allowed_fields:
             setattr(settings, key, value)
@@ -160,6 +169,9 @@ async def update_user_settings(
         "user_id": settings.user_id,
         "theme": settings.theme,
         "notifications_enabled": settings.notifications_enabled,
+        "notification_email": settings.notification_email,
+        "notify_on_success": settings.notify_on_success,
+        "notify_on_failure": settings.notify_on_failure,
         "has_api_key": settings.api_key is not None,
         "created_at": settings.created_at.isoformat(),
         "updated_at": settings.updated_at.isoformat(),

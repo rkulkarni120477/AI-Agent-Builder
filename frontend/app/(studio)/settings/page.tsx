@@ -3,10 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { fetchUserSettings, updateUserSettings } from '@/lib/analytics-api'
+import { useTheme } from '@/app/theme-provider'
 
 export default function SettingsPage() {
   const queryClient = useQueryClient()
-  const [theme, setTheme] = useState('auto')
+  const { theme, setTheme } = useTheme()
   const [notifications, setNotifications] = useState(true)
 
   // TODO: Get actual user ID from auth context
@@ -25,8 +26,11 @@ export default function SettingsPage() {
   })
 
   const handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme)
-    updateMutation.mutate({ theme: newTheme })
+    console.log('handleThemeChange called with:', newTheme)
+    console.log('Current theme from context:', theme)
+    setTheme(newTheme as 'light' | 'dark' | 'auto')
+      .then(() => console.log('Theme changed successfully'))
+      .catch((err) => console.error('Error changing theme:', err))
   }
 
   const handleNotificationsToggle = (enabled: boolean) => {
@@ -57,8 +61,8 @@ export default function SettingsPage() {
                   <button
                     key={t}
                     onClick={() => handleThemeChange(t)}
-                    className={`px-4 py-2 rounded-button text-sm font-500 capitalize ${
-                      (settings?.theme || theme) === t
+                    className={`px-4 py-2 rounded-button text-sm font-500 capitalize transition-colors ${
+                      theme === t
                         ? 'bg-accent text-white'
                         : 'border border-border bg-surface text-text hover:bg-panel'
                     }`}
@@ -70,11 +74,11 @@ export default function SettingsPage() {
             </div>
 
             {/* Notifications */}
-            <div>
-              <div className="flex items-center justify-between">
+            <div className="border-t border-divider pt-6">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm font-500 text-text">Notifications</p>
-                  <p className="text-text-3 text-xs mt-1">Receive alerts for agent runs and events</p>
+                  <p className="text-sm font-500 text-text">Email Notifications</p>
+                  <p className="text-text-3 text-xs mt-1">Receive alerts for agent runs</p>
                 </div>
                 <button
                   onClick={() => handleNotificationsToggle(!notifications)}
@@ -93,6 +97,54 @@ export default function SettingsPage() {
                   />
                 </button>
               </div>
+
+              {notifications && (
+                <div className="space-y-4 bg-panel p-4 rounded-button border border-border">
+                  {/* Email address */}
+                  <div>
+                    <label className="block text-sm font-500 text-text mb-2">Email Address</label>
+                    <input
+                      type="email"
+                      value={settings?.notification_email || ''}
+                      onChange={(e) =>
+                        updateMutation.mutate({ notification_email: e.target.value })
+                      }
+                      placeholder="you@example.com"
+                      className="w-full px-3 py-2 rounded-button border border-border bg-surface text-text text-sm"
+                    />
+                    <p className="text-text-3 text-xs mt-1">
+                      Notifications will be sent to this email address
+                    </p>
+                  </div>
+
+                  {/* Notification types */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-500 text-text">Notify me when:</p>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.notify_on_success || false}
+                        onChange={(e) =>
+                          updateMutation.mutate({ notify_on_success: e.target.checked })
+                        }
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm text-text">Agent runs complete successfully</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.notify_on_failure || false}
+                        onChange={(e) =>
+                          updateMutation.mutate({ notify_on_failure: e.target.checked })
+                        }
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm text-text">Agent runs fail</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
